@@ -56,6 +56,6 @@ To win the Plasma bounty, we must upgrade from Native Tokens (C2FLR) to Stableco
 
 | Contract | Address |
 |---|---|
-| **ShipmentTrackerV2** | *Pending Deployment* |
-| **PlasmaPaymentUSDT** | *Pending Deployment* |
+| **ShipmentTrackerV2** | `0xb0cfb3b6cf85c585532bd5f1ad20A49D89993233` |
+| **PlasmaPaymentUSDT** | `0x87A9D13dF621BF36A573c6dF7EbAA693F165934e` |
 

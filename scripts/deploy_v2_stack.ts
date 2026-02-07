@@ -17,7 +17,8 @@ async function main() {
     // 3. Deploy PlasmaPaymentUSDT (linked to V2 Tracker)
     // Note: We need a valid USDT address for Coston2. 
     // From HACKATHON_CONTEXT.md: 0x726839D54FB18E40b15392e276082A81D230F872
-    const USDT_ADDRESS = ethers.getAddress("0x726839D54FB18E40b15392e276082A81D230F872");
+    // ERROR: The provided address has an invalid checksum. We normalize it by lowercasing first.
+    const USDT_ADDRESS = ethers.getAddress("0x726839D54FB18E40b15392e276082A81D230F872".toLowerCase());
 
     // NOTE: Using 'PlasmaPaymentERC20' artifact as 'PlasmaPaymentUSDT' wasn't found in file list.
     const PlasmaPaymentUSDT = await ethers.getContractFactory("PlasmaPaymentERC20");
