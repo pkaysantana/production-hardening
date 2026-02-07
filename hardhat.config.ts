@@ -1,47 +1,38 @@
-import * as dotenv from "dotenv";
-dotenv.config();
+require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
 
-import { HardhatUserConfig, task } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-
-task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-    const accounts = await hre.ethers.getSigners();
-
-    for (const account of accounts) {
-        console.log(account.address);
-        const balance = await hre.ethers.provider.getBalance(account.address);
-        // Use formatEther for readability
-        console.log(`Balance: ${hre.ethers.formatEther(balance)} CFLR`);
+/** @type import('hardhat/config').HardhatUserConfig */
+module.exports = {
+  solidity: {
+    version: "0.8.28",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
     }
-});
-
-const config: HardhatUserConfig = {
-    solidity: "0.8.20",
-    networks: {
-        coston2: {
-            url: process.env.COSTON2_RPC_URL || "https://coston2-api.flare.network/ext/C/rpc",
-            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-            chainId: 114,
-        },
+  },
+  networks: {
+    plasmaTestnet: {
+      url: process.env.RPC_URL,
+      chainId: 9746,
+      accounts: [process.env.PRIVATE_KEY],
+      gasPrice: 1000000000, // 1 gwei
+    }
+  },
+  etherscan: {
+    apiKey: {
+      plasmaTestnet: process.env.ETHERSCAN_API_KEY
     },
-    etherscan: {
-        apiKey: {
-            coston2: "flare", // Dummy key
-        },
-        customChains: [
-            {
-                network: "coston2",
-                chainId: 114,
-                urls: {
-                    apiURL: "https://coston2-explorer.flare.network/api",
-                    browserURL: "https://coston2-explorer.flare.network",
-                },
-            },
-        ],
-    },
-    sourcify: {
-        enabled: false,
-    },
+    customChains: [
+      {
+        network: "plasmaTestnet",
+        chainId: 9746,
+        urls: {
+          apiURL: "https://testnet.plasmascan.to/api",
+          browserURL: "https://testnet.plasmascan.to/"
+        }
+      }
+    ]
+  }
 };
-
-export default config;
