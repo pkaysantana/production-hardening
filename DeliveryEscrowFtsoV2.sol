@@ -6,7 +6,6 @@ import {
 } from "@flarenetwork/flare-periphery-contracts/coston2/ContractRegistry.sol";
 
 import {
-    FtsoV2Interface
 } from "@flarenetwork/flare-periphery-contracts/coston2/FtsoV2Interface.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
