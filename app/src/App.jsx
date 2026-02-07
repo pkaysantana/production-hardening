@@ -6,7 +6,7 @@ import { getSupabase } from './lib/supabase/supabase'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Orders from './pages/Orders'
-import OrderDetail from './pages/OrderDetail'
+// import OrderDetail from './pages/OrderDetail'
 
 function App() {
   const { ready, authenticated } = usePrivy();
@@ -33,10 +33,10 @@ function App() {
           element={authenticated ? <Orders /> : <Navigate to="/login" />}
         />
 
-        <Route
+        {/* <Route
           path="/orders/:id"
           element={authenticated ? <OrderDetail /> : <Navigate to="/login" />}
-        />
+        /> */}
       </Routes>
     </BrowserRouter>
   )
