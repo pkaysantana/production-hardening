@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract DeliveryEscrow {
     address public buyer;
     address public seller;
-
     IERC20 public usdtToken;
 
     uint256 public amount;
