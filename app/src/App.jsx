@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { usePrivy } from '@privy-io/react-auth';
 import { useEffect, useState } from 'react'
-import { getSupabase } from './lib/supabase'
+import { getSupabase } from './lib/supabase/supabase'
 
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'

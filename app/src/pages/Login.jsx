@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useNavigate } from 'react-router-dom'
-import { getSupabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase/supabase'
 
 export default function Login() {
     const { login, authenticated, getAccessToken } = usePrivy()

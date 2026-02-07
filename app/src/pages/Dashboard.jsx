@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { usePrivy, useWallets } from '@privy-io/react-auth'
 import { useSetActiveWallet } from '@privy-io/wagmi'
 import { useChainId } from 'wagmi'
+import { payIntoEscrow } from "../lib/escrow/payIntoEscrow.js";
+
 const MOCK_ITEM = {
     id: 'item-001',
     name: 'Test Sneakers',
@@ -35,6 +37,13 @@ export default function Dashboard() {
         setupWallet()
     }, [ready, authenticated, wallet])
 
+    const handleBuy = async () => {
+        if (!wallet) return
+        console.log(wallet)
+        // Deposit 0.01 USDT (6 decimals) into escrow
+        await payIntoEscrow(wallet, "0.01", 6);
+    };
+
     const logout = async () => {
         await privyLogout()
         navigate('/login')
@@ -57,7 +66,7 @@ export default function Dashboard() {
                 <p><b>Name:</b> Test Sneakers</p>
                 <p><b>Price:</b> 5 USDC (test)</p>
 
-                <button onClick={() => alert('Buying item-001')}>
+                <button onClick={handleBuy}>
                     Buy Item
                 </button>
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getSupabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase/supabase'
 const supabase = getSupabase()
 
 export default function OrderDetail() {

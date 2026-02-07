@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getSupabase } from '../lib/supabase'
+import { getSupabase } from '../lib/supabase/supabase'
 const supabase = getSupabase()
 import { useNavigate } from 'react-router-dom'
 
