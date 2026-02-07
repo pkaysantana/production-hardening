@@ -13,7 +13,7 @@ async function main() {
 
     // 2. Deploy PlasmaPayment
     // Coston2 State Connector Address
-    const FDC_ADDRESS = "0x1000000000000000000000000000000000000001";
+    const FDC_ADDRESS = "0x10000000i 00000000000000000000000000000001";
 
     const PlasmaPayment = await ethers.getContractFactory("PlasmaPayment");
     const plasmaPayment = await PlasmaPayment.deploy(FDC_ADDRESS, shipmentTrackerAddress);
