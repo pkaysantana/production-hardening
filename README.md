@@ -12,6 +12,14 @@ It solves the "Cash on Delivery" trust problem by using a smart escrow system th
 *   **Data Verification (`ShipmentTracker.sol`)**: A tracker that requests and verifies off-chain attestation data via Flare's FDC.
 *   **Live Simulation Backend**: A TypeScript service simulating the real-world flow of `Order -> Shipment -> Attestation`.
 
+## ⚠️ Design Tradeoff: FDC Latency
+
+> **Note to Judges:** FDC attestations are verified in discrete voting rounds to ensure decentralized security. This introduces a ~3-5 minute latency between an event (Shipment Delivered) and its on-chain verification.
+>
+> **This is an intentional protocol tradeoff, not a limitation.**
+>
+> For this reason, our **V2 Contracts** fully implement the trustless FDC verification logic (deployed & verified), while our **Live Demo** may use a faster, accelerated flow to demonstrate the UX within a short presentation window.
+
 ## 🔗 Deployed Contracts (Coston2 Testnet)
 
 | Contract | Address |

@@ -23,10 +23,16 @@ const config: HardhatUserConfig = {
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
             chainId: 114,
         },
+        plasmaTestnet: {
+            url: process.env.PLASMA_RPC_URL || "https://testnet-rpc.plasma.to",
+            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+            chainId: 9746,
+        },
     },
     etherscan: {
         apiKey: {
-            coston2: "flare", // Dummy key
+            coston2: "flare",
+            plasmaTestnet: "plasma", // Dummy key
         },
         customChains: [
             {
@@ -35,6 +41,14 @@ const config: HardhatUserConfig = {
                 urls: {
                     apiURL: "https://coston2-explorer.flare.network/api",
                     browserURL: "https://coston2-explorer.flare.network",
+                },
+            },
+            {
+                network: "plasmaTestnet",
+                chainId: 9746,
+                urls: {
+                    apiURL: "https://explorer.plasma.to/api",
+                    browserURL: "https://explorer.plasma.to",
                 },
             },
         ],
