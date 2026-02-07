@@ -81,7 +81,28 @@ export default function Dashboard() {
             console.log('✅ Order Created:', orderId)
 
             alert(`✅ Purchase successful! Order ID: ${orderId}`)
-            // TODO: Save to Supabase here
+
+            // Save to Supabase
+            const { error: supabaseError } = await getSupabase()
+                .from('orders')
+                .insert([
+                    {
+                        order_id: orderId,
+                        buyer: address,
+                        seller: sellerAddress,
+                        amount: MOCK_ITEM.price,
+                        transaction_hash: createTx.hash,
+                        created_at: new Date().toISOString(),
+                    }
+                ])
+
+            if (supabaseError) {
+                console.error('Supabase save error:', supabaseError)
+                alert('⚠️ Payment worked, but saving to history failed.')
+            } else {
+                console.log('✅ Order saved to Supabase')
+                navigate('/orders') // Redirect to Orders page
+            }
         } catch (error) {
             console.error('Purchase failed:', error)
             alert(`❌ Purchase failed: ${error.message}`)
