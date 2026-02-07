@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react'
-<<<<<<< HEAD
-import { useParams } from 'react-router-dom'
-import { getSupabase } from '../lib/supabase/supabase'
-=======
 import { useParams, useNavigate } from 'react-router-dom'
 import { getSupabase } from '../lib/supabase'
 import { usePrivy, useWallets } from '@privy-io/react-auth'
 import { getContracts } from '../lib/contracts'
 
->>>>>>> 50772e32d90846ce544f839f5be0eac7fbab251c
 const supabase = getSupabase()
 
 export default function OrderDetail() {
