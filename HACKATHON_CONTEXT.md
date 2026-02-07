@@ -44,3 +44,18 @@ To win the Plasma bounty, we must upgrade from Native Tokens (C2FLR) to Stableco
 - **Do NOT** remove Plasma escrow logic.
 - **Do NOT** refactor verified contracts (`ShipmentTracker`, `PlasmaPayment` V1) unless absolutely necessary.
 - **Do NOT** introduce new dependencies (npm packages) close to submission.
+
+## 🚀 Phase 2: FDC Real Mode (Active)
+
+**Goal:** Upgrade verification logic to use real FDC Merkle Proofs.
+
+- **FDC Address Strategy:** FDC address is injected at deployment time to support Flare system contracts, testnet mocks, and future mainnet upgrades.
+- **New Contracts:**
+  - `ShipmentTrackerV2`: Adds `verifyDelivery` with FDC integration.
+  - `PlasmaPaymentUSDT`: Links to the V2 Tracker.
+
+| Contract | Address |
+|---|---|
+| **ShipmentTrackerV2** | *Pending Deployment* |
+| **PlasmaPaymentUSDT** | *Pending Deployment* |
+
