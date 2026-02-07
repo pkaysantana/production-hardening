@@ -1,15 +1,17 @@
-// Optional Flare FDC shipping verifications
-
-// SPDX-License-Identifier: MIT 
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-contract ShipmentTracker {
-    enum Status { //shipment status
+
+import "./interfaces/IFlareDataConnector.sol";
+
+contract ShipmentTrackerV2 {
+    enum Status {
         Created,
         PickedUp,
         InTransit,
         Delivered,
         Cancelled
     }
+
     struct Shipment {
         string shipmentId;
         address sender;
@@ -21,8 +23,17 @@ contract ShipmentTracker {
     mapping(string => Shipment) public shipments;
     mapping(string => bytes32) public attestationRequests;
     mapping(address => bool) public authorizedUpdaters;
+    
+    // V2: FDC Contract Reference
+    address public fdcContract;
 
     event AttestationRequested(string shipmentId, bytes32 indexed attestationId);
+    event ShipmentDelivered(string shipmentId);
+
+    constructor(address _fdcContract) {
+        require(_fdcContract != address(0), "FDC address cannot be zero");
+        fdcContract = _fdcContract;
+    }
 
     function setAuthorizedUpdater(address _updater, bool _authorized) external {
         authorizedUpdaters[_updater] = _authorized;
@@ -45,15 +56,7 @@ contract ShipmentTracker {
         Shipment storage s = shipments[_shipmentId];
         require(s.sender != address(0), "Shipment not found");
         
-        // ARCHITECTURE NOTE (From Flare Workshop 1):
-        // The FDC (Flare Data Connector) acts as an Oracle that must be "prompted" by an off-chain Operator/Server.
-        // 1. This function emits an event signaling the intent to verify.
-        // 2. The Off-chain Backend (Operator) observes this (or follows the shipment API).
-        // 3. The Operator generates a Merkle Proof via the FDC protocol.
-        // 4. The Operator (or anyone) submits the proof back to a 'verify' function (not yet implemented fully here).
-        // This ensures that even if the backend is the 'observer', the proof itself is cryptographically verified by Flare validators.
-
-        // specific logic to generate attestation ID would go here
+        // V2: In real mode, this event signals the off-chain operator to start the FDC round.
         bytes32 attestationId = keccak256(abi.encodePacked(_shipmentId, block.timestamp));
         attestationRequests[_shipmentId] = attestationId;
         
@@ -85,5 +88,32 @@ contract ShipmentTracker {
 
         s.status = Status.Cancelled;
         s.lastUpdated = block.timestamp;
+    }
+
+    // V2: FDC Verification Logic
+    function verifyDelivery(
+        string memory _shipmentId,
+        bytes32[] calldata proof,
+        bytes32 merkleRoot,
+        bytes32 leaf
+    ) external {
+        Shipment storage s = shipments[_shipmentId];
+        require(s.sender != address(0), "Shipment not found");
+        require(s.status != Status.Delivered, "Already delivered");
+
+        // Call FDC to verify the proof
+        bool isValid = IFlareDataConnector(fdcContract).verifyMerkleProof(
+            proof,
+            merkleRoot,
+            leaf
+        );
+
+        require(isValid, "FDC: Invalid Merkle Proof");
+
+        // If valid, update state
+        s.status = Status.Delivered;
+        s.lastUpdated = block.timestamp;
+        
+        emit ShipmentDelivered(_shipmentId);
     }
 }
