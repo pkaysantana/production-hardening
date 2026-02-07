@@ -30,8 +30,8 @@ async function main() {
     }
     const relayerWallet = new ethers.Wallet(privateKey, plasmaProvider);
 
-    // TODO: Update with deployed PlasmaPaymentRelayer address
-    const plasmaRelayerAddress = "0xDCd1F0747C2e7820a9C6F128E6E3571B79D2Ed85";
+    // PlasmaPaymentRelayer (with MockUSDT integration)
+    const plasmaRelayerAddress = "0x6533AEdD2369a5583959B244bADd797eB7333818";
     const plasmaRelayer = new ethers.Contract(plasmaRelayerAddress, PLASMA_RELAYER_ABI, relayerWallet);
 
     console.log(`📡 Listening for events on ShipmentTracker (${trackerAddress}) on Flare Coston2...`);
