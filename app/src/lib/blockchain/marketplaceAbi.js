@@ -1,6 +1,10 @@
 // src/lib/blockchain/marketplaceAbi.js
+// src/lib/blockchain/marketplaceAbi.js
 export const marketplaceAbi = [
-    "function createEscrowForOrder(bytes32 orderId, address seller, address usdtAddress, uint256 deadlineDuration) external returns (address)",
+    "constructor(address _deliveryOracle, address _usdt)",
+    "function createEscrowForOrder(bytes32 orderId, address seller, uint256 deadlineDuration) external returns (address escrow)",
     "function escrowOfOrder(bytes32 orderId) view returns (address)",
-    "event EscrowCreated(bytes32 indexed orderId, address indexed buyer, address indexed seller, address escrow, address usdt, uint256 deadlineDuration)"
+    "function USDT() view returns (address)",
+    "function deliveryOracle() view returns (address)",
+    "event EscrowCreated(bytes32 indexed orderId, address indexed buyer, address indexed seller, address escrow, uint256 deadlineDuration, address deliveryOracle)"
 ];

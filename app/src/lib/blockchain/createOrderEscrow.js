@@ -7,7 +7,6 @@ export async function createEscrowForOrder(
   wallet,
   orderId,        // Supabase UUID string
   sellerAddress,
-  usdtAddress,
   deadlineSeconds
 ) {
   const ethProvider = await wallet.getEthereumProvider();
@@ -27,14 +26,15 @@ export async function createEscrowForOrder(
   const tx = await marketplace.createEscrowForOrder(
     orderIdBytes32,
     sellerAddress,
-    usdtAddress,
     deadlineSeconds
   );
 
   const receipt = await tx.wait();
 
   // grab escrow address from event
+  // grab escrow address from event (ONLY Marketplace logs)
   const event = receipt.logs
+    .filter(log => log.address.toLowerCase() === MARKETPLACE_ADDRESS.toLowerCase())
     .map(log => {
       try {
         return marketplace.interface.parseLog(log);
@@ -44,5 +44,8 @@ export async function createEscrowForOrder(
     })
     .find(e => e?.name === "EscrowCreated");
 
+  if (!event) throw new Error("EscrowCreated event not found");
+
   return event.args.escrow;
+
 }

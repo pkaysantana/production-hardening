@@ -19,6 +19,9 @@ export async function payIntoEscrow(wallet, escrowAddress, amount, decimals = 6)
     // 1️⃣ Approve
     await (await token.approve(escrowAddress, value)).wait();
 
+    console.log("Value:", value.toString());
+    console.log("Balance:", (await token.balanceOf(user)).toString());
+    console.log("Allowance:", (await token.allowance(user, escrowAddress)).toString());
     // 2️⃣ Deposit
     const tx = await escrow.deposit(value);
     console.log("Deposit tx sent:", tx.hash);

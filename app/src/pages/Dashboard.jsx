@@ -14,9 +14,9 @@ import { USDT_ADDRESS } from "../lib/escrow/escrowConfig";
 
 
 const MOCK_ITEM = {
-    id: 'item-038',
+    id: 'item-0101',
     name: 'Test Sneakers',
-    price: '5', // pretend 5 USDC
+    price: '0.001',
     seller: '0x48F4068b8c704bec2cb51d3a4e8585c8c5Fb68D5'
 }
 
@@ -74,14 +74,13 @@ export default function Dashboard() {
         const tx = await marketplace.createEscrowForOrder(
             orderIdBytes32,
             "0x48F4068b8c704bec2cb51d3a4e8585c8c5Fb68D5",          // seller(Fake address for now)
-            USDT_ADDRESS,
             86400             // 1 day
         );
 
         const receipt = await tx.wait();
-
-        // 5. Extract escrow address from event
+        // 5. Extract escrow address from event (ONLY from Marketplace logs)
         const event = receipt.logs
+            .filter(log => log.address.toLowerCase() === marketplace.target.toLowerCase())
             .map(log => {
                 try {
                     return marketplace.interface.parseLog(log);
@@ -91,6 +90,8 @@ export default function Dashboard() {
             })
             .find(e => e?.name === "EscrowCreated");
 
+        if (!event) throw new Error("EscrowCreated event not found");
+
         const escrow = event.args.escrow;
         console.log("Escrow created:", escrow);
 
@@ -98,9 +99,9 @@ export default function Dashboard() {
 
         await payIntoEscrow(
             wallet,
-            escrow,               // escrow address (PaymentEscrow)
-            MOCK_ITEM.price,      // amount
-            6                     // decimals
+            escrow,          // PaymentEscrow address
+            MOCK_ITEM.price, // amount
+            6                // decimals
         );
 
         alert("✅ Escrow created & funded");
