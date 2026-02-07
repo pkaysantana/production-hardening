@@ -11,7 +11,6 @@ module.exports = {
         runs: 200
       }
     }
-<<<<<<< HEAD
   },
   networks: {
     plasmaTestnet: {
@@ -37,51 +36,3 @@ module.exports = {
     ]
   }
 };
-=======
-});
-
-const config: HardhatUserConfig = {
-    solidity: "0.8.20",
-    networks: {
-        coston2: {
-            url: process.env.COSTON2_RPC_URL || "https://coston2-api.flare.network/ext/C/rpc",
-            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-            chainId: 114,
-        },
-        plasmaTestnet: {
-            url: process.env.PLASMA_RPC_URL || "https://testnet-rpc.plasma.to",
-            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-            chainId: 9746,
-        },
-    },
-    etherscan: {
-        apiKey: {
-            coston2: "flare",
-            plasmaTestnet: "plasma", // Dummy key
-        },
-        customChains: [
-            {
-                network: "coston2",
-                chainId: 114,
-                urls: {
-                    apiURL: "https://coston2-explorer.flare.network/api",
-                    browserURL: "https://coston2-explorer.flare.network",
-                },
-            },
-            {
-                network: "plasmaTestnet",
-                chainId: 9746,
-                urls: {
-                    apiURL: "https://explorer.plasma.to/api",
-                    browserURL: "https://explorer.plasma.to",
-                },
-            },
-        ],
-    },
-    sourcify: {
-        enabled: false,
-    },
-};
-
-export default config;
->>>>>>> 3b62e20654a84d1b2785072dc0e7969f5f2da691
