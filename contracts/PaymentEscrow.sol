@@ -2,10 +2,14 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract DeliveryEscrow {
+contract PaymentEscrow {
+    using SafeERC20 for IERC20;
+
     address public buyer;
     address public seller;
+    address public deliveryOracle;
     IERC20 public usdtToken;
 
     uint256 public amount;
@@ -21,40 +25,36 @@ contract DeliveryEscrow {
         address _buyer,
         address _seller,
         address _usdtAddress,
-        uint256 _deadlineDuration
+        uint256 _deadlineDuration,
+        address _deliveryOracle
     ) {
         buyer = _buyer;
         seller = _seller;
+        deliveryOracle = _deliveryOracle;
         usdtToken = IERC20(_usdtAddress);
         deadline = block.timestamp + _deadlineDuration;
     }
 
     function deposit(uint256 _amount) external {
-        require(_amount > 0, "Amount must be > 0");
+        require(msg.sender == buyer, "Only buyer");
         require(amount == 0, "Already funded");
-        require(!released && !cancelled, "Already settled");
-
-        require(
-            usdtToken.transferFrom(msg.sender, address(this), _amount),
-            "USDT transfer failed"
-        );
+        require(_amount > 0, "Amount zero");
 
         amount = _amount;
+        usdtToken.safeTransferFrom(msg.sender, address(this), _amount);
+
         emit Deposited(_amount);
     }
 
-    function releaseToSeller() external {
-        require(msg.sender == buyer, "Only buyer");
+   function releaseToSeller() external {
+        require(msg.sender == deliveryOracle, "Only delivery oracle");
         require(amount > 0, "No funds");
         require(!released && !cancelled, "Already settled");
         require(block.timestamp <= deadline, "Deadline passed");
 
         released = true;
 
-        require(
-            usdtToken.transfer(seller, amount),
-            "USDT transfer failed"
-        );
+        usdtToken.safeTransfer(seller, amount);
 
         emit Released(seller, amount);
     }
@@ -67,10 +67,7 @@ contract DeliveryEscrow {
 
         cancelled = true;
 
-        require(
-            usdtToken.transfer(buyer, amount),
-            "USDT transfer failed"
-        );
+        usdtToken.safeTransfer(buyer, amount);
 
         emit Refunded(buyer, amount);
     }

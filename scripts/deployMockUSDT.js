@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+const { ethers } = require("hardhat");
 
 async function main() {
   const MockUSDT = await ethers.getContractFactory("MockUSDT");
@@ -8,12 +8,10 @@ async function main() {
   const usdt = await MockUSDT.deploy();
   await usdt.waitForDeployment();
 
-  const address = await usdt.getAddress();
-  console.log("✅ Mock USDT deployed at:", address);
+  console.log("✅ Mock USDT deployed at:", await usdt.getAddress());
 }
 
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-

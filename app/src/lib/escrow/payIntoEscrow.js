@@ -1,18 +1,28 @@
 import { ethers } from "ethers";
 import { escrowAbi, erc20Abi } from "./abi";
-import { ESCROW_ADDRESS, USDT_ADDRESS } from "./escrowConfig";
 
-// Approves USDT and deposits into the escrow contract
-export async function payIntoEscrow(wallet, amount, decimals = 6) {
-    const ethereumProvider = await wallet.getEthereumProvider();
-    const provider = new ethers.BrowserProvider(ethereumProvider);
+export async function payIntoEscrow(wallet, escrowAddress, amount, decimals = 6) {
+    const ethProvider = await wallet.getEthereumProvider();
+    const provider = new ethers.BrowserProvider(ethProvider);
     const signer = await provider.getSigner();
 
-    const usdt = new ethers.Contract(USDT_ADDRESS, erc20Abi, signer);
-    const escrow = new ethers.Contract(ESCROW_ADDRESS, escrowAbi, signer);
+    const user = await signer.getAddress();
+
+    const escrow = new ethers.Contract(escrowAddress, escrowAbi, signer);
+
+    // IMPORTANT: use the token the escrow is actually configured with
+    const tokenAddr = await escrow.usdtToken();
+    const token = new ethers.Contract(tokenAddr, erc20Abi, signer);
 
     const value = ethers.parseUnits(String(amount), decimals);
 
-    await usdt.approve(ESCROW_ADDRESS, value);
-    await escrow.deposit(value);
+    // 1️⃣ Approve
+    await (await token.approve(escrowAddress, value)).wait();
+
+    // 2️⃣ Deposit
+    const tx = await escrow.deposit(value);
+    console.log("Deposit tx sent:", tx.hash);
+
+    await tx.wait();
+    console.log("Funds deposited into escrow");
 }
