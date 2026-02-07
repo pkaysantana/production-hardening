@@ -1,39 +1,38 @@
 import { ethers } from "hardhat";
-import { nameToAddress, FTSO_REGISTRY_ABI } from "@flarenetwork/flare-periphery-contract-artifacts";
+import { nameToAddress } from "@flarenetwork/flare-periphery-contract-artifacts";
+
+// Manual ABI because the package export is missing or mismatched
+const FTSO_REGISTRY_ABI = [
+    "function getCurrentPriceWithDecimals(string memory _symbol) external view returns (uint256 _price, uint256 _timestamp, uint256 _decimals)",
+    "function getCurrentPriceWithDecimals(uint256 _assetIndex) external view returns (uint256 _price, uint256 _timestamp, uint256 _decimals)",
+    "function getSupportedSymbols() external view returns (string[] memory)"
+];
 
 async function main() {
     console.log("--- Probing FTSO via Official Flare Package ---");
 
     const [signer] = await ethers.getSigners();
-    const provider = ethers.provider;
 
+    // 1. Get Registry Address
     // Use the official package to get the FtsoRegistry address for Coston2
-    const ftsoRegistryAddress = nameToAddress("FtsoRegistry", "coston2");
-    console.log(`FtsoRegistry Address (from package): ${ftsoRegistryAddress}`);
+    let ftsoRegistryAddress = nameToAddress("FtsoRegistry", "coston2");
 
-    // If the package method didn't work, try the direct FlareContractRegistry approach
     if (!ftsoRegistryAddress) {
-        console.log("Package did not return address. Trying FlareContractRegistry...");
-
-        // FlareContractRegistry is at a well-known address on all Flare chains
-        const FLARE_CONTRACT_REGISTRY = "0xAD67FE66660Fb8dFE9d6b1b4240d8650e30F6019";
-        const REGISTRY_ABI = [
-            "function getContractAddressByName(string calldata _name) external view returns (address)"
-        ];
-
-        const registry = new ethers.Contract(FLARE_CONTRACT_REGISTRY, REGISTRY_ABI, signer);
-        const resolvedAddress = await registry.getContractAddressByName("FtsoRegistry");
-        console.log(`FtsoRegistry resolved: ${resolvedAddress}`);
+        console.log("Package did not return address. Trying fallback...");
+        ftsoRegistryAddress = "0x48767F909A9A2eD381448E42c174381C9BdEEe82"; // Coston2 FTSO Registry
     }
 
-    // Create FtsoRegistry contract instance
+    console.log(`FtsoRegistry Address: ${ftsoRegistryAddress}`);
+
+    // 2. Create Contract
     const ftsoRegistry = new ethers.Contract(ftsoRegistryAddress!, FTSO_REGISTRY_ABI, signer);
 
-    // Get current price for "FLR"
+    // 3. Get Price
     console.log("\nFetching FLR/USD price...");
     try {
+        // Try Symbol First
         const result = await ftsoRegistry.getCurrentPriceWithDecimals("FLR");
-        console.log("✅ SUCCESS!");
+        console.log("✅ SUCCESS (Symbol)!");
         console.log(`Price: ${result[0]}`);
         console.log(`Timestamp: ${result[1]}`);
         console.log(`Decimals: ${result[2]}`);
@@ -41,16 +40,17 @@ async function main() {
         const price = Number(result[0]) / Math.pow(10, Number(result[2]));
         console.log(`FLR/USD = $${price.toFixed(6)}`);
     } catch (e: any) {
-        console.log(`❌ FLR failed: ${e.shortMessage || e.message}`);
+        console.log(`❌ FLR Symbol failed: ${e.shortMessage || e.message}`);
 
-        // Try C2FLR for testnet
-        console.log("\nTrying C2FLR (testnet native)...");
         try {
+            // Try C2FLR (Coston2 Native)
+            console.log("Trying C2FLR...");
             const result = await ftsoRegistry.getCurrentPriceWithDecimals("C2FLR");
-            console.log("✅ SUCCESS with C2FLR!");
-            console.log(`Price: ${result[0]}, Decimals: ${result[2]}`);
+            console.log("✅ SUCCESS (C2FLR)!");
+            const price = Number(result[0]) / Math.pow(10, Number(result[2]));
+            console.log(`C2FLR/USD = $${price.toFixed(6)}`);
         } catch (e2: any) {
-            console.log(`❌ C2FLR also failed: ${e2.shortMessage || e2.message}`);
+            console.log(`❌ C2FLR failed: ${e2.shortMessage || e2.message}`);
         }
     }
 }
