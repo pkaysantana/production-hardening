@@ -10,11 +10,9 @@ async function main() {
     // TODO: Replace with the actual Plasma Testnet USDT address or ask user.
     // For now, using a placeholder/zero address to deploy.
     // NOTE: If using Zero Address, transfers will fail until updated or redeployed with correct address.
-    const USDT_ADDRESS = "0x0000000000000000000000000000000000000000"; // REPLACE_ME
+    const USDT_ADDRESS = "0xa9fe73d102fE4A7bFa0B68a9E4c2f38fe9FA57c9"; // MockUSDT deployed
 
-    if (USDT_ADDRESS === "0x0000000000000000000000000000000000000000") {
-        console.warn("⚠️  WARNING: Using Zero Address for USDT. Transfers will fail!");
-    }
+
 
     const PlasmaPaymentRelayer = await ethers.getContractFactory("PlasmaPaymentRelayer");
 
