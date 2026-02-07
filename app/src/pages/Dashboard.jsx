@@ -4,6 +4,8 @@ import { usePrivy, useWallets } from '@privy-io/react-auth'
 import { useSetActiveWallet } from '@privy-io/wagmi'
 import { useChainId } from 'wagmi'
 import { payIntoEscrow } from "../lib/escrow/payIntoEscrow.js";
+import { releaseEscrow } from "../lib/escrow/releaseEscrow.js";
+
 
 const MOCK_ITEM = {
     id: 'item-001',
@@ -44,6 +46,11 @@ export default function Dashboard() {
         await payIntoEscrow(wallet, "0.01", 6);
     };
 
+    const handleRelease = async () => {
+        await releaseEscrow(wallet);
+        alert("Delivery confiremd - Funds released 🎉");
+    };
+
     const logout = async () => {
         await privyLogout()
         navigate('/login')
@@ -68,6 +75,10 @@ export default function Dashboard() {
 
                 <button onClick={handleBuy}>
                     Buy Item
+                </button>
+
+                <button onClick={handleRelease}>
+                    Confirm delivery & release funds
                 </button>
             </div>
             <button onClick={logout}>Logout</button>
