@@ -22,19 +22,19 @@ export const PLASMA_RELAYER_ABI = [
 
 /**
  * Get configured contract instances
- * @param {object} signer - ethers Signer object from wagmi/privy
+ * @param {object} signerOrProvider - ethers Signer or Provider object
  */
-export function getContracts(signer) {
+export function getContracts(signerOrProvider) {
     const usdtContract = new ethers.Contract(
         MOCK_USDT_ADDRESS,
         MOCK_USDT_ABI,
-        signer
+        signerOrProvider
     );
 
     const relayerContract = new ethers.Contract(
         PLASMA_RELAYER_ADDRESS,
         PLASMA_RELAYER_ABI,
-        signer
+        signerOrProvider
     );
 
     return { usdtContract, relayerContract };
