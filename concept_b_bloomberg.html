@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONCEPT_B: RELAYER_CONSOLE</title>
+    <style>
+        :root {
+            --term-black: #050505;
+            --term-green: #00FF41;
+            --term-dim: #008F11;
+            --term-amber: #FFB000;
+            --term-red: #FF0000;
+            --term-font: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--term-black);
+            color: var(--term-green);
+            font-family: var(--term-font);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        .header {
+            padding: 5px 10px;
+            background: #111;
+            color: var(--term-amber);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--term-dim);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 250px 1fr 350px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .panel {
+            border-right: 1px solid var(--term-dim);
+            padding: 10px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .panel-title {
+            border-bottom: 1px solid var(--term-dim);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            color: var(--term-amber);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px dashed #333;
+        }
+
+        .row:hover {
+            background-color: #111;
+            cursor: pointer;
+        }
+
+        .value {
+            color: #fff;
+        }
+
+        .label {
+            color: var(--term-dim);
+        }
+
+        .ticker {
+            background: #000;
+            color: var(--term-amber);
+            padding: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            border-top: 1px solid var(--term-dim);
+            font-size: 0.8rem;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }
+
+        .log-time {
+            color: var(--term-dim);
+            margin-right: 8px;
+        }
+
+        button {
+            background: black;
+            border: 1px solid var(--term-green);
+            color: var(--term-green);
+            padding: 5px 10px;
+            font-family: inherit;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        button:hover {
+            background: var(--term-green);
+            color: black;
+        }
+
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <span>RELAYER_CONSOLE v.2.4.1</span>
+        <span>NET: PLASMA_L2 [CONNECTED]</span>
+    </div>
+
+    <div class="grid">
+        <!-- Sidebar -->
+        <div class="panel">
+            <div style="margin-bottom: 20px;">
+                <div class="label">OPERATOR</div>
+                <div class="value">LOGISTICS_LEAD</div>
+            </div>
+
+            <div class="label" style="margin-bottom: 5px;">COMMANDS</div>
+            <button>> VIEW_ACTIVE_ORDERS</button>
+            <button>> VIEW_SETTLEMENT_LOGS</button>
+            <button>> CONFIGURE_RPC_NODE</button>
+            <button style="border-color: var(--term-red); color: var(--term-red); margin-top: 20px;">>
+                EMERGENCY_HALT</button>
+        </div>
+
+        <!-- Main Data -->
+        <div class="panel">
+            <div class="panel-title">ACTIVE_MARKET_ORDERS</div>
+
+            <div class="row" style="color: var(--term-dim); font-size: 0.8rem;">
+                <span style="width: 50px;">ID</span>
+                <span style="width: 150px;">ITEM</span>
+                <span style="width: 80px;">VAL</span>
+                <span style="width: 100px;">STATUS</span>
+                <span style="width: 150px;">HASH</span>
+            </div>
+
+            <div class="row">
+                <span style="width: 50px;">8829</span>
+                <span style="width: 150px;">IND_SNEAKER</span>
+                <span style="width: 80px;">0.001</span>
+                <span style="width: 100px; color: var(--term-green)">IN_TRANSIT</span>
+                <span style="width: 150px;">0xFA...21</span>
+            </div>
+            <div class="row">
+                <span style="width: 50px;">8830</span>
+                <span style="width: 150px;">PALLET_X1</span>
+                <span style="width: 80px;">0.050</span>
+                <span style="width: 100px; color: var(--term-amber)">PENDING</span>
+                <span style="width: 150px;">---</span>
+            </div>
+            <div class="row">
+                <span style="width: 50px;">8831</span>
+                <span style="width: 150px;">CONTAINER_A</span>
+                <span style="width: 80px;">12.00</span>
+                <span style="width: 100px; color: #fff">RELEASED</span>
+                <span style="width: 150px;">0xBB...99</span>
+            </div>
+
+            <br>
+            <div style="border: 1px solid var(--term-dim); padding: 10px;">
+                <div class="label" style="margin-bottom: 5px;">SELECTED_ORDER_DETAILS: 8829</div>
+                <div class="row"><span class="label">SELLER:</span> <span class="value">0x48F4...68D5</span></div>
+                <div class="row"><span class="label">ESCROW:</span> <span class="value">0x77A1...22B1</span></div>
+                <div class="row"><span class="label">FLARE_PROOF:</span> <span class="value">VERIFIED_MERKLE_ROOT</span>
+                </div>
+                <br>
+                <div style="background: var(--term-dim); color: black; padding: 2px;">> AWAITING FINAL SETTLEMENT
+                    TRIGGER...</div>
+            </div>
+        </div>
+
+        <!-- Terminal Log -->
+        <div class="panel">
+            <div class="panel-title">SYSTEM_LOGS</div>
+            <div class="log-entry"><span class="log-time">10:42:01</span> CONNECTED TO COSTON2_RPC</div>
+            <div class="log-entry"><span class="log-time">10:42:05</span> LISTENER_INIT: PAYMENT_ESCROW_V2</div>
+            <div class="log-entry"><span class="log-time">10:44:12</span> <span style="color:var(--term-amber)">WARN:
+                    GAS_PRICE_SPIKE (122 GWEI)</span></div>
+            <div class="log-entry"><span class="log-time">10:45:00</span> RELAYER: DETECTED_EVENT [ShipmentDelivered]
+            </div>
+            <div class="log-entry"><span class="log-time">10:45:01</span> <span style="color:var(--term-green)">SUCCESS:
+                    TX_MINED 0x99...aa</span></div>
+            <div class="log-entry"><span class="log-time">10:45:02</span> > _<span class="blink">|</span></div>
+        </div>
+    </div>
+
+    <div class="ticker">
+        MARKET_STATUS: OPEN | PLASMA_USDT: $1.00 | FLARE_FTSO: ACTIVE | BTC: $98,200 | ETH: $4,200 | LATEST_BLOCK:
+        1928374
+    </div>
+
+</body>
+
+</html>

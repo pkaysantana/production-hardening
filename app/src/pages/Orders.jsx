@@ -1,53 +1,62 @@
-import { useEffect, useState } from 'react'
-import { getSupabase } from '../lib/supabase/supabase'
-const supabase = getSupabase()
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from "react";
+import { Layout, Card, Typography, Tag, Spin, message } from "antd";
+import { getSupabase } from "../lib/supabase";
 
-export default function Orders() {
-    const [orders, setOrders] = useState([])
-    const [loading, setLoading] = useState(true)
-    const navigate = useNavigate()
+const { Content } = Layout;
+const { Title, Text } = Typography;
+
+export default function Orders({ profileId, role }) {
+    const supabase = getSupabase();
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchOrders = async () => {
+            const column = role === "buyer" ? "buyer_id" : "seller_id";
+
             const { data, error } = await supabase
-                .from('orders')
-                .select('*')
-                .order('created_at', { ascending: false })
+                .from("orders")
+                .select(`
+        *,
+        products (
+          title,
+          price_usdt
+        )
+      `)
+                .eq(column, profileId)
+                .order("created_at", { ascending: false });
 
-            if (!error) setOrders(data)
-            setLoading(false)
-        }
+            if (error) {
+                console.error(error);
+                message.error("Failed to load orders");
+            } else {
+                setOrders(data || []);
+            }
 
-        fetchOrders()
-    }, [])
+            setLoading(false);
+        };
 
-    if (loading) return <p>Loading orders…</p>
+        fetchOrders();
+    }, [profileId, role]);
+
+    if (loading) return <Spin />;
 
     return (
-        <div style={{ padding: 32 }}>
-            <h1>Your Orders</h1>
-
-            {orders.length === 0 && <p>No orders yet</p>}
-
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-                {orders.map(order => (
-                    <li
-                        key={order.id}
-                        onClick={() => navigate(`/orders/${order.id}`)}
-                        style={{
-                            padding: 16,
-                            border: '1px solid #ddd',
-                            marginBottom: 12,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <p><b>Order ID:</b> {order.id}</p>
-                        <p><b>Amount:</b> ${order.amount}</p>
-                        <p><b>Status:</b> {order.status}</p>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    )
+        <Content>
+            <Title level={3}>
+                {role === "buyer" ? "My Orders" : "Orders to Fulfil"}
+            </Title>
+            {orders.map(order => (
+                <Card key={order.id} style={{ marginBottom: 16 }}>
+                    <Title level={5}>{order.products?.title}</Title>
+                    <Text>Price: {order.products?.price_usdt} USDT</Text>
+                    <br />
+                    <Text>Status:</Text>{" "}
+                    <Tag color="green">{order.status}</Tag>
+                    <br />
+                    <Text code>{order.escrow_address}</Text>
+                </Card>
+            ))}
+        </Content>
+    );
 }

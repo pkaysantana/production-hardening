@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONCEPT_E: INSTITUTIONAL_LEDGER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Serif+4:wght@400;600&family=Courier+Prime&display=swap');
+
+        :root {
+            --paper-bg: #F4F1EA;
+            --paper-white: #FFFFFF;
+            --ink-black: #2B2B2B;
+            --ink-blue: #1A237E;
+            --ink-red: #B71C1C;
+            --gold-accent: #C5A065;
+            --font-head: 'Playfair Display', serif;
+            --font-body: 'Source Serif 4', serif;
+            --font-mono: 'Courier Prime', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--paper-bg);
+            color: var(--ink-black);
+            font-family: var(--font-body);
+            margin: 0;
+            padding: 40px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .document-container {
+            background: var(--paper-white);
+            width: 100%;
+            max-width: 1400px;
+            height: 90vh;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            border: 1px solid #D1CDC5;
+        }
+
+        .sidebar {
+            background: #F9F8F6;
+            border-right: 1px solid #E0E0E0;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            padding: 60px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .main-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            pointer-events: none;
+            background-image: linear-gradient(#E0E0E0 1px, transparent 1px);
+            background-size: 100% 40px;
+            opacity: 0.2;
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-size: 2.5rem;
+            color: var(--ink-black);
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--ink-black);
+            padding-bottom: 20px;
+        }
+
+        .brand-seal {
+            width: 80px;
+            height: 80px;
+            border: 3px double var(--gold-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            color: var(--gold-accent);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            padding: 15px 0;
+            border-bottom: 1px solid #E0E0E0;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--ink-blue);
+            font-weight: 600;
+        }
+
+        .nav-item.active::before {
+            content: '§ ';
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        th {
+            text-align: left;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #666;
+            padding: 10px 0;
+            border-bottom: 2px solid var(--ink-black);
+        }
+
+        td {
+            padding: 20px 0;
+            border-bottom: 1px solid #E0E0E0;
+            vertical-align: top;
+        }
+
+        .amount {
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+
+        .stamp {
+            display: inline-block;
+            padding: 5px 12px;
+            border: 2px solid;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transform: rotate(-2deg);
+            opacity: 0.8;
+            font-size: 0.8rem;
+        }
+
+        .stamp.verified {
+            color: var(--ink-blue);
+            border-color: var(--ink-blue);
+        }
+
+        .stamp.pending {
+            color: var(--ink-red);
+            border-color: var(--ink-red);
+        }
+
+        .action-button {
+            background: var(--ink-blue);
+            color: #fff;
+            font-family: var(--font-mono);
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .meta {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 60px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="document-container">
+
+        <div class="sidebar">
+            <div class="brand-seal">
+                Official<br>Ledger
+            </div>
+
+            <div style="font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 5px;">Dr. D. Operator</div>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #666; margin-bottom: 40px;">Lic. No.
+                8829-X</div>
+
+            <div class="nav-item">Dashboard Overview</div>
+            <div class="nav-item active">Ledger Records</div>
+            <div class="nav-item">Escrow Certificates</div>
+            <div class="nav-item">Legal Settings</div>
+
+            <div style="margin-top: auto; border-top: 2px solid var(--ink-black); padding-top: 20px;">
+                <button class="action-button"
+                    style="background: transparent; border: 1px solid var(--ink-red); color: var(--ink-red); width: 100%; box-shadow: none;">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1>Official Logistics Manifest</h1>
+                    <div style="font-family: var(--font-mono); color: #666;">DATE: 2026-02-07 | REF: MANIFEST_004</div>
+                </div>
+                <button class="action-button">
+                    + New Entry
+                </button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Reference ID</th>
+                        <th style="width: 35%;">Item Particulars</th>
+                        <th style="width: 20%;">Valuation</th>
+                        <th style="width: 20%;">Certification</th>
+                        <th style="width: 10%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="amount">#8829</td>
+                        <td>
+                            <strong>Industrial Sneakers XT-900</strong><br>
+                            <span style="font-size: 0.8rem; color: #666;">Seller: 0x48...68D5</span>
+                        </td>
+                        <td class="amount">USDT 0.001</td>
+                        <td><span class="stamp verified">Certified</span></td>
+                        <td><a href="#" style="color: var(--ink-blue);">View</a></td>
+                    </tr>
+                    <tr>
+                        <td class="amount">#8830</td>
+                        <td>
+                            <strong>Shipping Container X1</strong><br>
+                            <span style="font-size: 0.8rem; color: #666;">Seller: 0x99...22A1</span>
+                        </td>
+                        <td class="amount">USDT 0.050</td>
+                        <td><span class="stamp pending">Pending</span></td>
+                        <td><a href="#" style="color: var(--ink-blue);">Review</a></td>
+                    </tr>
+                    <tr>
+                        <td class="amount">#8831</td>
+                        <td>
+                            <strong>Raw Materials (Copper)</strong><br>
+                            <span style="font-size: 0.8rem; color: #666;">Seller: 0x11...BB33</span>
+                        </td>
+                        <td class="amount">USDT 12.500</td>
+                        <td><span class="stamp pending">Draft</span></td>
+                        <td><a href="#" style="color: var(--ink-blue);">Sign</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 60px; padding: 40px; background: #F9F8F6; border: 1px solid #E0E0E0;">
+                <h3 style="font-family: var(--font-head); margin-top: 0;">Selected Entry: #8829</h3>
+                <p>
+                    This document certifies that the item listed above has been placed in verifiable escrow on the
+                    Plasma Network.
+                    Delivery verification is contingent upon data provided by the Flare Data Connector oracle service.
+                </p>
+                <div style="margin-top: 30px; display: flex; gap: 20px;">
+                    <button class="action-button">Execute Contract</button>
+                    <button class="action-button"
+                        style="background: #fff; color: var(--ink-black); border: 1px solid #ccc; box-shadow: none;">Download
+                        Proof PDF</button>
+                </div>
+            </div>
+
+            <div class="meta">
+                VERIFIABLE COMMERCE INITIATIVE • ETHOXFORD 2026<br>
+                SECURED BY CRYPTOGRAPHIC PROOF
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

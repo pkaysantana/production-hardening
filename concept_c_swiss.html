@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONCEPT_C: SWISS_BLUEPRINT</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        :root {
+            --swiss-white: #FFFFFF;
+            --swiss-black: #1A1A1A;
+            --swiss-blue: #0044CC;
+            --swiss-grid: #E0E0E0;
+            --font-main: 'Inter', Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            border-radius: 0 !important;
+        }
+
+        body {
+            background-color: var(--swiss-white);
+            color: var(--swiss-black);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            /* Grid overlay hint */
+            background-image: linear-gradient(var(--swiss-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--swiss-grid) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+
+        .header {
+            grid-column: span 12;
+            border-bottom: 4px solid var(--swiss-black);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .col-3 {
+            grid-column: span 3;
+        }
+
+        .col-9 {
+            grid-column: span 9;
+        }
+
+        .col-4 {
+            grid-column: span 4;
+        }
+
+        .module {
+            background: white;
+            padding: 20px;
+            border: 1px solid var(--swiss-black);
+            position: relative;
+        }
+
+        .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            text-align: left;
+            border-bottom: 2px solid var(--swiss-black);
+            padding: 10px 0;
+            font-size: 0.8rem;
+        }
+
+        .data-table td {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--swiss-grid);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid var(--swiss-black);
+        }
+
+        .badge.blue {
+            background-color: var(--swiss-blue);
+            color: white;
+            border-color: var(--swiss-blue);
+        }
+
+        .stat-block {
+            border-left: 4px solid var(--swiss-blue);
+            padding-left: 15px;
+        }
+
+        /* Interaction */
+        button {
+            background: var(--swiss-black);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <h1>Financial Control Tower</h1>
+        <div style="font-size: 0.9rem; margin-top: 10px;">
+            ETHOXFORD 2026 / VERIFIABLE COMMERCE INITIATIVE / TOWER_ID_01
+        </div>
+    </header>
+
+    <!-- Navigation / Sidebar -->
+    <div class="col-3">
+        <div class="module">
+            <span class="label">OPERATOR</span>
+            <span class="value">LOGISTICS_LEAD</span>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <div style="margin-bottom: 15px;">DASHBOARD</div>
+            <div style="margin-bottom: 15px; color: var(--swiss-blue); font-weight: bold;">→ LOGISTICS_LEDGER</div>
+            <div style="margin-bottom: 15px; color: #999;">SETTINGS (LOCKED)</div>
+        </div>
+
+        <div class="module" style="margin-top: 20px; border: none; background: transparent; padding: 0;">
+            <div class="stat-block">
+                <span class="label">NETWORK STATUS</span>
+                <span class="value" style="color: var(--swiss-blue);">OPTIMAL</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-9">
+        <div class="module">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+                <h2>Active Orders</h2>
+                <span class="label">SORT: DESCENDING / FILTER: ALL</span>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ORDER ID</th>
+                        <th>ITEM DESCRIPTION</th>
+                        <th>VALUE (USDT)</th>
+                        <th>VERIFICATION</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-family: monospace;">#00008829</td>
+                        <td>INDUSTRIAL SNEAKERS XT-900</td>
+                        <td>0.001</td>
+                        <td><span class="badge blue">FLARE CONFIRMED</span></td>
+                        <td>In Transit</td>
+                    </tr>
+                    <tr>
+                        <td style="font-family: monospace;">#00008830</td>
+                        <td>SHIPPING CONTAINER X1</td>
+                        <td>0.050</td>
+                        <td><span class="badge">PENDING</span></td>
+                        <td>Processing</td>
+                    </tr>
+                    <tr>
+                        <td style="font-family: monospace;">#00008831</td>
+                        <td>RAW MATERIALS (COPPER)</td>
+                        <td>12.500</td>
+                        <td><span class="badge">PENDING</span></td>
+                        <td>Awaiting Escrow</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 40px; background: #F5F5F5; padding: 30px;">
+                <h3 style="color: var(--swiss-blue);">Transaction Details: #00008829</h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px;">
+                    <div>
+                        <span class="label">ESCROW CONTRACT</span>
+                        <span class="value" style="font-family: monospace; font-size: 1rem;">0x77A1...22B1</span>
+
+                        <span class="label">SELLER IDENTITY</span>
+                        <span class="value" style="font-family: monospace; font-size: 1rem;">0x48F4...68D5</span>
+                    </div>
+                    <div>
+                        <span class="label">PROOF HASH</span>
+                        <span class="value" style="font-family: monospace; font-size: 1rem;">0xFA9912...8832</span>
+
+                        <button style="margin-top: 10px;">VIEW ON EXPLORER →</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>
