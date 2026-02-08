@@ -12,10 +12,11 @@ async function main() {
     console.log("--- Probing FTSO via Official Flare Package ---");
 
     const [signer] = await ethers.getSigners();
+    const provider = signer.provider!;
 
     // 1. Get Registry Address
     // Use the official package to get the FtsoRegistry address for Coston2
-    let ftsoRegistryAddress = nameToAddress("FtsoRegistry", "coston2");
+    let ftsoRegistryAddress = await nameToAddress("FtsoRegistry", "coston2", provider);
 
     if (!ftsoRegistryAddress) {
         console.log("Package did not return address. Trying fallback...");

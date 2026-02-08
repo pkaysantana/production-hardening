@@ -6,11 +6,9 @@ async function main() {
     const [deployer] = await ethers.getSigners();
     console.log(`📡 Using Deployer (Relayer) Address: ${deployer.address}`);
 
-    // PLASMA TESTNET USDT ADDRESS
-    // TODO: Replace with the actual Plasma Testnet USDT address or ask user.
-    // For now, using a placeholder/zero address to deploy.
-    // NOTE: If using Zero Address, transfers will fail until updated or redeployed with correct address.
-    const USDT_ADDRESS = "0xa9fe73d102fE4A7bFa0B68a9E4c2f38fe9FA57c9"; // MockUSDT deployed
+    // USDT Address - read from env with fallback to deployed MockUSDT
+    const USDT_ADDRESS = process.env.USDT_ADDRESS || "0xa9fe73d102fE4A7bFa0B68a9E4c2f38fe9FA57c9";
+    console.log(`💰 Using USDT Address: ${USDT_ADDRESS}`);
 
 
 
