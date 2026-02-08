@@ -72,7 +72,19 @@ function App() {
     loadProfile();
   }, [session, authenticated, walletAddress]);
 
-  if (!ready || session === undefined) return <p>Loading…</p>;
+  if (!ready || session === undefined) return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontSize: '1.5rem',
+      color: '#333',
+      backgroundColor: '#fafafa'
+    }}>
+      Loading…
+    </div>
+  );
 
   return (
     <BrowserRouter>
