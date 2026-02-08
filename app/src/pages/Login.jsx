@@ -1,40 +1,42 @@
-import { useEffect } from 'react'
-import { usePrivy } from '@privy-io/react-auth'
-import { useNavigate } from 'react-router-dom'
-import { getSupabase } from '../lib/supabase/supabase'
+// Login.jsx
+import { useState } from 'react'
+import { getSupabase } from '../lib/supabase'
 
 export default function Login() {
-    const { login, authenticated, getAccessToken } = usePrivy()
     const supabase = getSupabase()
-    const navigate = useNavigate()
+    const [email, setEmail] = useState('')
+    const [sent, setSent] = useState(false)
 
-    useEffect(() => {
-        const linkSupabase = async () => {
-            if (!authenticated) return
-
-            const token = await getAccessToken()
-
-            await supabase.auth.signInWithIdToken({
-                provider: 'privy',
-                token,
-            })
-
-            navigate('/dashboard')
-        }
-
-        linkSupabase()
-    }, [authenticated])
+    const sendMagicLink = async () => {
+        await supabase.auth.signInWithOtp({ email })
+        setSent(true)
+    }
 
     return (
-        <div style={{ maxWidth: 400, margin: '80px auto' }}>
-            <h2>Login with wallet</h2>
+        <div style={styles.container}>
+            <h2>Sign in</h2>
 
-            <button
-                onClick={() => login()}
-                style={{ padding: 12, width: '100%', fontSize: 16 }}
-            >
-                Login with Privy
-            </button>
+            {!sent ? (
+                <>
+                    <input
+                        placeholder="you@email.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        style={styles.input}
+                    />
+                    <button onClick={sendMagicLink} style={styles.button}>
+                        Send magic link
+                    </button>
+                </>
+            ) : (
+                <p>Check your email for the login link.</p>
+            )}
         </div>
     )
+}
+
+const styles = {
+    container: { maxWidth: 420, margin: '100px auto', textAlign: 'center' },
+    input: { width: '100%', padding: 12, marginBottom: 12, fontSize: 16 },
+    button: { width: '100%', padding: 12, fontSize: 16 }
 }
