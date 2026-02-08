@@ -1,74 +1,119 @@
-# Verifiable B2B Commerce (Flare + Plasma)
+# Magma Marketplace: Verified B2B Commerce
 
-**Hackathon Submission: ETHOxford 2026**
+![Status](https://img.shields.io/badge/Status-Hackathon_MVP-fire) ![Settlement](https://img.shields.io/badge/Settlement-Plasma-blue) ![Truth](https://img.shields.io/badge/Truth-Flare-red) ![Bridge](https://img.shields.io/badge/Bridge-TypeScript-yellow) ![Interface](https://img.shields.io/badge/Interface-React-cyan)
 
-This project demonstrates a **Verifiable B2B Commerce Primitive** that bridges off-chain logistics data with on-chain payments using **Flare's Data Connector (FDC)**.
-
-It solves the "Cash on Delivery" trust problem by using a smart escrow system that only releases funds when the shipment status is strictly verified by the FDC attestation mechanism.
-
-## 🚀 Key Features
-
-*   **Smart Escrow (`PlasmaPayment.sol` & `PlasmaPaymentUSDT.sol`)**: secure payment logic that locks funds until conditions are met. (Supports Native C2FLR & Stablecoins).
-*   **Data Verification (`ShipmentTracker.sol`)**: A tracker that requests and verifies off-chain attestation data via Flare's FDC.
-*   **Live Simulation Backend**: A TypeScript service simulating the real-world flow of `Order -> Shipment -> Attestation`.
-
-## ⚠️ Design Tradeoff: FDC Latency
-
-> **Note to Judges:** FDC attestations are verified in discrete voting rounds to ensure decentralized security. This introduces a ~3-5 minute latency between an event (Shipment Delivered) and its on-chain verification.
+> **"Liquid Capital. Solid Truth."**
 >
-> **This is an intentional protocol tradeoff, not a limitation.**
->
-> For this reason, our **V2 Contracts** fully implement the trustless FDC verification logic (deployed & verified), while our **Live Demo** may use a faster, accelerated flow to demonstrate the UX within a short presentation window.
+> Magma is a Trustless Commerce Primitive that burns the middleman by bridging **Plasma's** zero-gas settlement with **Flare's** decentralized data verification.
 
-## 🔗 Deployed Contracts (Coston2 Testnet)
+---
 
-| Contract | Address |
-|---|---|
-| **ShipmentTracker** | `0xDCd1F0747C2e7820a9C6F128E6E3571B79D2Ed85` |
-| **PlasmaPayment** (Native) | `0xa9fe73d102fE4A7bFa0B68a9E4c2f38fe9FA57c9` |
-| **PlasmaPaymentUSDT** (Stablecoin) | `0x6dBd653b44476bE6D1A7F2c4129613127f93F2F0` |
+## 🌍 The Problem: The $2.5 Trillion Gap
 
-Verified on [Coston2 Explorer](https://coston2-explorer.flare.network/).
+Global trade is bifurcated:
+*   **Multinationals** get Letters of Credit (LCs).
+*   **SMEs** get rejected (40% rejection rate).
 
-## 🛠️ Project Structure
+Magma solves this by replacing the bank with code. We allow solvent SMEs to prove delivery via **Flare Data Connector (FDC)** and get paid instantly via **Plasma**, creating a "Verified Commerce" layer for the internet.
 
-*   `contracts/`: Solidity smart contracts.
-    *   `ShipmentTracker.sol`: Manages shipment lifecycle and FDC requests.
-    *   `PlasmaPayment.sol`: Handles native token payment escrow.
-    *   `PlasmaPaymentUSDT.sol`: **NEW**: Handles USDT stablecoin escrow (Plasma Track).
-*   `backend/`: TypeScript backend services.
-    *   `backend/flare/shipping.ts`: Service for interacting with the ShipmentTracker.
-    *   `backend/flare/fxOracle.ts`: Service for fetching oracle FX rates.
-*   `scripts/`: Deployment and simulation scripts.
-    *   `simulate_live.ts`: Simulator for Native C2FLR flow.
-    *   `simulate_usdt.ts`: **Simulator for Stablecoin USDT flow.**
+---
 
-## 🏃 Quick Start
+## � The Magma Architecture Stack
+
+**"Money 2.0" Thesis:** We don't use a monolithic chain. We use specialized layers for specialized tasks.
+
+### 1. The Settlement Layer (Liquid)
+*   **Network:** Plasma Testnet (Chain ID 9746)
+*   **Role:** Stablecoin Liquidity & Payments
+*   **Tech:** Solidity, OpenZeppelin
+*   **Why:** Zero-Gas functionality via native Paymasters.
+
+### 2. The Truth Layer (Solid)
+*   **Network:** Flare Coston2 (Chain ID 114)
+*   **Role:** Decentralized Data Verification (FDC)
+*   **Tech:** Flare Data Connector, Solidity
+*   **Why:** The only decentralized oracle capable of proving real-world API states.
+
+### 3. The Infrastructure Layer (The Bridge)
+*   **Role:** Relayer Bot (Cross-chain event listening)
+*   **Tech:** TypeScript, Ethers.js v6, Node.js
+*   **Why:** Orchestrates the atomic swap between Truth (Flare) and Settlement (Plasma). *This is the complex nervous system of the app.*
+
+### 4. The Interface Layer
+*   **Role:** Client Dashboard
+*   **Tech:** React, Vite, Privy (Auth), Supabase (Data)
+*   **Why:** Embedded wallet experience for seamless B2B onboarding.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+*   Node.js v18+
+*   Metamask / Rabby Wallet
+*   `Coston2` (Flare Testnet) ETH for gas.
 
 ### 1. Installation
 ```bash
+git clone https://github.com/orlandoalexander/ethoxford-2026.git
+cd ethoxford-2026
 npm install
 ```
 
-### 2. Configuration
-Ensure you have a `.env` file with your `PRIVATE_KEY` and `COSTON2_RPC_URL` (optional).
-
-### 3. Run Live Simulation (USDT Stablecoin Flow)
-Execute the B2B flow required for the Plasma Track:
+### 2. Run the Live Simulation (Command Line)
+Simulate a full B2B lifecycle (Order -> Shipping -> FDC Verification -> Payout) entirely from the terminal:
 
 ```bash
+# Run the USDT Stablecoin Flow
 npx hardhat run scripts/simulate_usdt.ts --network coston2
 ```
 
-**What this does:**
-1.  Connects to your wallet (checks USDT0 balance).
-2.  **Approves** the Payment Contract (ERC20 Approve).
-3.  **Locks 1.00 USDT** in Escrow (`createOrder`).
-4.  **Creates Shipment** & **Requests Attestation** from Flare FDC.
+**What happens:**
+1.  **Escrow:** Locks 1.00 MockUSDT in the contract.
+2.  **Shipment:** Simulates a FedEx "Delivered" event.
+3.  **Attestation:** Requests Flare FDC to verify the event.
+4.  **Payout:** Releases funds to the Seller.
 
-### 4. Verify on Explorer
-Check your wallet address on the [Coston2 Explorer](https://coston2-explorer.flare.network/) to see the transaction history (Approve, Order, Shipment).
+### 3. Run the Frontend Dashboard
+Interact with the UI via Privy + Wagmi:
 
-## 📚 Architecture
+```bash
+cd app
+npm install
+npm run dev
+```
+Open `http://localhost:5173` to see the "Magma Dashboard."
 
-See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for a detailed breakdown of the interaction flow.
+---
+
+## 🔗 Deployed Contracts (Coston2 Testnet)
+
+| Contract | Address | Function |
+|---|---|---|
+| **ShipmentTracker** | `0xDCd1F0747C2e7820a9C6F128E6E3571B79D2Ed85` | Manages Shipment State & FDC |
+| **PlasmaPayment** | `0xa9fe73d102fE4A7bFa0B68a9E4c2f38fe9FA57c9` | Native Token Escrow |
+| **PlasmaPaymentERC20** | `0xec83F0D1b321152916a4040dC4EB7F75204000aA` | **Stablecoin Escrow (Main Demo)** |
+| **DeliveryRegistry** | *Run `npx hardhat run scripts/deploy-delivery-registry.ts`* | Verifies FDC Proofs |
+
+> **Setup Note:** After deploying `DeliveryRegistry`, update your `.env` with `VITE_DELIVERY_REGISTRY_ADDRESS=<your_address>`.
+
+## 💎 Project Structure
+
+```bash
+├── app/                      # Frontend (React/Vite/Privy)
+├── backend/                  # Off-Chain Services
+│   ├── flare/                # FDC & Oracle Services
+│   ├── plasma/               # Payment Relayer Logic
+│   └── services/             # Core Infrastructure
+├── contracts/                # Solidity Smart Contracts (Flat Structure)
+│   ├── interfaces/           # Interfaces (IFlareDataConnector.sol)
+│   ├── PlasmaPayment.sol     # Core Escrow Logic
+│   ├── ShipmentTracker.sol   # FDC Verification Logic
+│   ├── DeliveryRegistry.sol  # Registry Logic
+│   └── ... (Mocks & V2 Contracts)
+├── scripts/                  # DevOps & Automation (Flat Structure)
+│   ├── deploy_*.ts           # Deployment Scripts
+│   ├── simulate_*.ts         # End-to-End Simulations
+│   └── debug_*.ts            # Troubleshooting Tools
+└── docs/                     # Documentation & Pitch Deck
+```
