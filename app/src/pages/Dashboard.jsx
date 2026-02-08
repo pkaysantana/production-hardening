@@ -12,6 +12,11 @@ import { MARKETPLACE_ADDRESS } from "../lib/blockchain/marketplaceConfig";
 import { marketplaceAbi } from "../lib/blockchain/marketplaceAbi";
 import { USDT_ADDRESS } from "../lib/escrow/escrowConfig";
 
+import { submitSimulatedDelivery } from "../lib/blockchain/sourceChain.ts";
+
+const SIMULATED_ORDER_ID =
+  "0x4f6a1c2e9d7b3a5c8e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1";
+
 
 const MOCK_ITEM = {
     id: 'item-0101',
@@ -48,6 +53,15 @@ export default function Dashboard() {
 
         setupWallet()
     }, [ready, authenticated, wallet])
+const handleSourceChainDelivery = async () => {
+  try {
+    console.log("Submitting delivery to source chain...");
+    await submitSimulatedDelivery(SIMULATED_ORDER_ID);
+    console.log("Delivery transaction sent");
+  } catch (err) {
+    console.error("Source-chain delivery failed:", err);
+  }
+};
 
     const handleBuy = async () => {
         if (!wallet) return;
@@ -140,11 +154,38 @@ export default function Dashboard() {
                 {escrowAddress && (
                     <p><b>Escrow:</b> {escrowAddress}</p>
                 )}
+<button
+  onClick={handleSourceChainDelivery}
+  style={{
+    padding: "10px 16px",
+    backgroundColor: "#4f46e5",
+    color: "white",
+    borderRadius: "6px",
+    marginTop: "12px"
+  }}
+>
+  Confirm Delivery (Source Chain)
+</button>
 
                 {/* <button onClick={handleRelease}>
                     Confirm delivery & release funds
                 </button> */}
             </div>
+
+            <button
+  onClick={handleSourceChainDelivery}
+  style={{
+    padding: "10px 16px",
+    backgroundColor: "#4f46e5",
+    color: "white",
+    borderRadius: "6px",
+    marginTop: "12px"
+  }}
+>
+  Confirm Delivery (Source Chain)
+</button>
+
+
             <button onClick={logout}>Logout</button>
         </div>
     )

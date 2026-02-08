@@ -35,6 +35,12 @@ contract PaymentEscrow {
         deadline = block.timestamp + _deadlineDuration;
     }
 
+    function setDeliveryOracle(address _oracle) external {
+    require(deliveryOracle == address(0), "Oracle already set");
+    require(_oracle != address(0), "Invalid oracle");
+    deliveryOracle = _oracle;
+}
+
     function deposit(uint256 _amount) external {
         require(msg.sender == buyer, "Only buyer");
         require(amount == 0, "Already funded");
