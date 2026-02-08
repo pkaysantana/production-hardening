@@ -1,10 +1,14 @@
+<p align="center">
+  <img src="docs/logo.jpeg" alt="Magma Marketplace Logo" width="300"/>
+</p>
+
 # Magma Marketplace: Verified B2B Commerce
 
 ![Status](https://img.shields.io/badge/Status-Hackathon_MVP-fire) ![Settlement](https://img.shields.io/badge/Settlement-Plasma-blue) ![Truth](https://img.shields.io/badge/Truth-Flare-red) ![Bridge](https://img.shields.io/badge/Bridge-TypeScript-yellow) ![Interface](https://img.shields.io/badge/Interface-React-cyan)
 
 > **"Liquid Capital. Solid Truth."**
 >
-> Magma is a Trustless Commerce Primitive that burns the middleman by bridging **Plasma's** zero-gas settlement with **Flare's** decentralized data verification.
+> Magma is a Trustless Commerce Primitive that burns the middleman by bridging **Plasma's** zero-gas settlement with **Flare's** decentralised data verification.
 
 ---
 
@@ -20,7 +24,7 @@ Magma solves this by replacing the bank with code. We allow solvent SMEs to prov
 
 ## � The Magma Architecture Stack
 
-**"Money 2.0" Thesis:** We don't use a monolithic chain. We use specialized layers for specialized tasks.
+**"Money 2.0" Thesis:** We don't use a monolithic chain. We use specialised layers for specialised tasks.
 
 ### 1. The Settlement Layer (Liquid)
 *   **Network:** Plasma Testnet (Chain ID 9746)
@@ -30,9 +34,9 @@ Magma solves this by replacing the bank with code. We allow solvent SMEs to prov
 
 ### 2. The Truth Layer (Solid)
 *   **Network:** Flare Coston2 (Chain ID 114)
-*   **Role:** Decentralized Data Verification (FDC)
+*   **Role:** Decentralised Data Verification (FDC)
 *   **Tech:** Flare Data Connector, Solidity
-*   **Why:** The only decentralized oracle capable of proving real-world API states.
+*   **Why:** The only decentralised oracle capable of proving real-world API states.
 
 ### 3. The Infrastructure Layer (The Bridge)
 *   **Role:** Relayer Bot (Cross-chain event listening)
