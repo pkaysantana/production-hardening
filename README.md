@@ -90,17 +90,17 @@ Open `http://localhost:5173` to see the "Magma Dashboard."
 
 ---
 
-## 🔗 Deployed Contracts (Coston2 Testnet)
+## 🔗 Deployed Contracts (Plasma Testnet - Chain ID 9746)
 
 | Contract | Address | Function |
 |---|---|---|
-| **ShipmentTracker** | `0xDCd1F0747C2e7820a9C6F128E6E3571B79D2Ed85` | Manages Shipment State & FDC |
-| **PlasmaPayment** | `0xa9fe73d102fE4A7bFa0B68a9E4c2f38fe9FA57c9` | Native Token Escrow |
-| **PlasmaPaymentERC20** | `0xec83F0D1b321152916a4040dC4EB7F75204000aA` | **Stablecoin Escrow (Main Demo)** |
-| **FXSettlement** | `0x65162419E7312cE9Eb8f7107E7C2676360A226c2` | **FTSO-Powered FX Rate Locking** |
-| **DeliveryRegistry** | *Run `npx hardhat run scripts/deploy-delivery-registry.ts`* | Verifies FDC Proofs |
+| **Marketplace** | `0x0985d984088E01E1C853aE0e2B3e7A198aeFd5Fc` | Factory that spawns PaymentEscrow per order |
+| **PaymentEscrow** | *(Created per order)* | Holds USDT until delivery confirmed |
+| **DeliveryEscrowFDC** | *(Linked to PaymentEscrow)* | Verifies FDC attestation & triggers release |
+| **MockUSDT** | `0xa9fe73d102fE4A7bFa0B68a9E4c2f38fe9FA57c9` | Test stablecoin (6 decimals) |
 
-> **Setup Note:** After deploying `DeliveryRegistry`, update your `.env` with `VITE_DELIVERY_REGISTRY_ADDRESS=<your_address>`.
+> **Flow:** Buyer → Marketplace.createEscrowForOrder() → PaymentEscrow deployed → Buyer deposits USDT → Shipper confirms via DeliveryEscrowFDC → Seller receives funds.
+
 
 ## 💎 Project Structure
 
