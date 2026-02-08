@@ -1,0 +1,26 @@
+[
+  {
+    "type": "function",
+    "name": "confirmDelivery",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "orderId",
+        "type": "bytes32"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "event",
+    "name": "DeliveryConfirmed",
+    "inputs": [
+      {
+        "name": "orderId",
+        "type": "bytes32",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  }
+]

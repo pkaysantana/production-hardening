@@ -1,374 +1,283 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-    Layout,
-    Card,
-    Typography,
-    Button,
-    Row,
-    Col,
-    Spin,
-    message,
-    Modal,
-    Descriptions,
-    Tag,
-    Switch,
-    Tooltip,
-    FloatButton,
-} from "antd";
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { usePrivy, useWallets } from '@privy-io/react-auth'
+import { useSetActiveWallet } from '@privy-io/wagmi'
+import { useChainId } from 'wagmi'
+import { payIntoEscrow } from "../lib/escrow/payIntoEscrow.js";
 
-import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { useSetActiveWallet } from "@privy-io/wagmi";
-import { useChainId } from "wagmi";
-
+import { useState } from "react";
 import { ethers } from "ethers";
-import { getSupabase } from "../lib/supabase";
 
-import { payIntoEscrow } from "../lib/escrow/payIntoEscrow";
 import { MARKETPLACE_ADDRESS } from "../lib/blockchain/marketplaceConfig";
 import { marketplaceAbi } from "../lib/blockchain/marketplaceAbi";
 import { USDT_ADDRESS } from "../lib/escrow/escrowConfig";
 
-import { User, ShoppingBag, Code } from "react-feather";
+import { submitSimulatedDelivery } from "../lib/blockchain/sourceChain.ts";
 
-const { Content } = Layout;
-const { Title, Text } = Typography;
+const SIMULATED_ORDER_ID =
+  "0x4f6a1c2e9d7b3a5c8e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1";
 
-export default function Dashboard({ profile }) {
-    const navigate = useNavigate();
-    const supabase = getSupabase();
 
-    const { ready, authenticated, logout: privyLogout } = usePrivy();
-    const { wallets } = useWallets();
-    const { setActiveWallet } = useSetActiveWallet();
-    const chainId = useChainId();
+const MOCK_ITEM = {
+    id: 'item-0101',
+    name: 'Test Sneakers',
+    price: '0.001',
+    seller: '0x48F4068b8c704bec2cb51d3a4e8585c8c5Fb68D5'
+}
 
-    const wallet = wallets[0];
-    const address = wallet?.address;
+export default function Dashboard() {
+    const [escrowAddress, setEscrowAddress] = useState(null);
 
-    const [products, setProducts] = useState([]);
-    const [loadingProducts, setLoadingProducts] = useState(true);
-    const [buyingId, setBuyingId] = useState(null);
-    const [showDevInfo, setShowDevInfo] = useState(false);
-    const [role, setRole] = useState(localStorage.getItem("role") || "buyer");
+    const navigate = useNavigate()
+    const { ready, authenticated, logout: privyLogout } = usePrivy()
+    const { wallets } = useWallets()
+    const { setActiveWallet } = useSetActiveWallet()
+    const chainId = useChainId()
 
-    /* -----------------------------
-       Wallet setup
-    ------------------------------ */
+    const wallet = wallets[0]
+    const address = wallet?.address
+    const isConnected = !!address
+
     useEffect(() => {
-        if (!ready || !authenticated || !wallet) return;
+        if (!ready || !authenticated || !wallet) return
 
         const setupWallet = async () => {
             try {
-                await wallet.switchChain(9746);
-                setActiveWallet(wallet);
+                await wallet.switchChain(9746)
+                setActiveWallet(wallet)
+                console.log('Switched to Plasma chain')
             } catch (err) {
-                console.error(err);
+                console.error(err)
             }
-        };
+        }
 
-        setupWallet();
-    }, [ready, authenticated, wallet]);
+        setupWallet()
+    }, [ready, authenticated, wallet])
+const handleSourceChainDelivery = async () => {
+  try {
+    console.log("Submitting delivery to source chain...");
+    await submitSimulatedDelivery(SIMULATED_ORDER_ID);
+    console.log("Delivery transaction sent");
+  } catch (err) {
+    console.error("Source-chain delivery failed:", err);
+  }
+};
 
-    /* -----------------------------
-       Fetch products + stock
-    ------------------------------ */
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoadingProducts(true);
-
-            let query = supabase
-                .from("products")
-                .select(`
-          *,
-          profiles (
-            wallet_address
-          ),
-          product_stock (
-            id,
-            status
-          )
-        `)
-                .order("created_at", { ascending: false });
-
-            if (role === "seller") {
-                query = query.eq("seller_id", profile.id);
-            }
-
-            const { data, error } = await query;
-
-            if (error) {
-                console.error(error);
-                message.error("Failed to load products");
-            } else {
-                const formatted = (data || []).map((p) => ({
-                    ...p,
-                    seller_wallet_address: p.profiles?.wallet_address ?? null,
-                    stock_available:
-                        p.product_stock?.filter((s) => s.status === "available").length ?? 0,
-                }));
-
-                setProducts(formatted);
-            }
-
-            setLoadingProducts(false);
-        };
-
-        fetchProducts();
-    }, [role]);
-
-    useEffect(() => {
-        localStorage.setItem("role", role);
-    }, [role]);
-
-    /* -----------------------------
-       Buy flow (stock-aware)
-    ------------------------------ */
-    const handleBuy = async (product) => {
+    const handleBuy = async () => {
         if (!wallet) return;
 
-        let stock = null;
+        // 1. Provider + signer
+        const ethProvider = await wallet.getEthereumProvider();
+        const provider = new ethers.BrowserProvider(ethProvider);
+        const signer = await provider.getSigner();
 
-        try {
-            setBuyingId(product.id);
-
-            // 🔒 Reserve exactly ONE stock unit
-            const { data: reservedStock } = await supabase
-                .from("product_stock")
-                .update({ status: "reserved" })
-                .eq("product_id", product.id)
-                .eq("status", "available")
-                .select()
-                .limit(1)
-                .single();
-
-            if (!reservedStock) {
-                message.error("Out of stock");
-                return;
-            }
-
-            stock = reservedStock;
-
-            const ethProvider = await wallet.getEthereumProvider();
-            const provider = new ethers.BrowserProvider(ethProvider);
-            const signer = await provider.getSigner();
-
-            const marketplace = new ethers.Contract(
-                MARKETPLACE_ADDRESS,
-                marketplaceAbi,
-                signer
-            );
-
-            const orderIdBytes32 = ethers.keccak256(
-                ethers.toUtf8Bytes(stock.id)
-            );
-
-            const tx = await marketplace.createEscrowForOrder(
-                orderIdBytes32,
-                product.seller_wallet_address ?? product.seller_id,
-                USDT_ADDRESS,
-                86400
-            );
-
-            const receipt = await tx.wait();
-
-            const event = receipt.logs
-                .map((log) => {
-                    try {
-                        return marketplace.interface.parseLog(log);
-                    } catch {
-                        return null;
-                    }
-                })
-                .find((e) => e?.name === "EscrowCreated");
-
-            const escrow = event.args.escrow;
-
-            await payIntoEscrow(wallet, escrow, product.price_usdt, 6);
-
-            await supabase.from("orders").insert({
-                buyer_id: profile.id,
-                seller_id: product.seller_id,
-                product_id: product.id,
-                stock_id: stock.id,
-                escrow_address: escrow,
-                order_id_bytes32: orderIdBytes32,
-                status: "FUNDED",
-            });
-
-            await supabase
-                .from("product_stock")
-                .update({ status: "sold" })
-                .eq("id", stock.id);
-
-            message.success("Purchase successful ✅");
-        } catch (err) {
-            console.error(err);
-
-            if (stock?.id) {
-                await supabase
-                    .from("product_stock")
-                    .update({ status: "available" })
-                    .eq("id", stock.id);
-            }
-
-            message.error("Purchase failed");
-        } finally {
-            setBuyingId(null);
-        }
-    };
-
-    /* -----------------------------
-       Logout
-    ------------------------------ */
-    const logout = async () => {
-        await privyLogout();
-        await supabase.auth.signOut();
-        navigate("/login");
-    };
-
-    if (!ready || !authenticated) {
-        return (
-            <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-                <Spin />
-            </div>
+        // 2. Marketplace contract
+        const marketplace = new ethers.Contract(
+            MARKETPLACE_ADDRESS,
+            marketplaceAbi,
+            signer
         );
+
+        // 3. Fake order id for now (no Supabase)
+        const orderId = MOCK_ITEM.id;
+        const orderIdBytes32 = ethers.keccak256(
+            ethers.toUtf8Bytes(orderId)
+        );
+
+        // 4. Create escrow
+        const tx = await marketplace.createEscrowForOrder(
+            orderIdBytes32,
+            "0x48F4068b8c704bec2cb51d3a4e8585c8c5Fb68D5",          // seller(Fake address for now)
+            86400             // 1 day
+        );
+
+        const receipt = await tx.wait();
+        // 5. Extract escrow address from event (ONLY from Marketplace logs)
+        const event = receipt.logs
+            .filter(log => log.address.toLowerCase() === marketplace.target.toLowerCase())
+            .map(log => {
+                try {
+                    return marketplace.interface.parseLog(log);
+                } catch {
+                    return null;
+                }
+            })
+            .find(e => e?.name === "EscrowCreated");
+
+        if (!event) throw new Error("EscrowCreated event not found");
+
+        const escrow = event.args.escrow;
+        console.log("Escrow created:", escrow);
+
+        setEscrowAddress(escrow);
+
+        await payIntoEscrow(
+            wallet,
+            escrow,          // PaymentEscrow address
+            MOCK_ITEM.price, // amount
+            6                // decimals
+        );
+
+        alert("✅ Escrow created & funded");
+    };
+
+    // const handleRelease = async () => {
+    //     await releaseEscrow(wallet);
+    //     alert("Delivery confiremd - Funds released 🎉");
+    // };
+
+    const logout = async () => {
+        await privyLogout()
+        navigate('/login')
     }
 
+    if (!ready || !authenticated) return <p>Loading wallet…</p>
+
     return (
-        <Layout style={{ width: "100vw", minHeight: "100vh", background: "#fafafa" }}>
-            <Content style={{ maxWidth: 1280, margin: "0 auto", padding: "48px 32px" }}>
-                <Row justify="space-between" align="middle" style={{ marginBottom: 40 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                        <Title level={2} style={{ margin: 0 }}>
-                            Marketplace
-                        </Title>
+        <div style={{ padding: 32 }}>
+            <h1>Dashboard</h1>
 
-                        <Tooltip title={role === "buyer" ? "Buyer view" : "Seller view"}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <ShoppingBag size={14} />
-                                <Switch
-                                    checked={role === "seller"}
-                                    onChange={(checked) => setRole(checked ? "seller" : "buyer")}
-                                    checkedChildren="Seller"
-                                    unCheckedChildren="Buyer"
-                                />
-                                <User size={14} />
-                            </div>
-                        </Tooltip>
-                    </div>
+            <p>Connected: {isConnected ? 'yes' : 'no'}</p>
+            <p>Address: {address}</p>
+            <p>Chain ID: {chainId}</p>
 
-                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                        {role === "buyer" && (
-                            <Button onClick={() => navigate("/orders")}>My Orders</Button>
-                        )}
 
-                        <Button type="text" onClick={logout}>
-                            Logout
-                        </Button>
-                    </div>
-                </Row>
-                {role === "seller" && !loadingProducts && products.length === 0 && (
-                    <div
-                        style={{
-                            marginTop: 120,
-                            textAlign: "center",
-                            color: "#999",
-                        }}
-                    >
-                        <Title level={4} style={{ marginBottom: 8 }}>
-                            No items for sale
-                        </Title>
-                        <Text type="secondary">
-                            You haven’t listed any products yet.
-                        </Text>
-                    </div>
+            <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8 }}>
+                <h2>Mock Item</h2>
+                <p><b>ID:</b> item-001</p>
+                <p><b>Name:</b> Test Sneakers</p>
+                <p><b>Price:</b> 5 USDC (test)</p>
+
+                <button onClick={handleBuy}>
+                    Buy Item
+                </button>
+                {escrowAddress && (
+                    <p><b>Escrow:</b> {escrowAddress}</p>
                 )}
-                {(role === "buyer" || products.length > 0) && (
-                    <Row gutter={[32, 32]}>
-                        {loadingProducts &&
-                            Array.from({ length: 6 }).map((_, i) => (
-                                <Col xs={24} sm={12} md={8} key={i}>
-                                    <Card loading />
-                                </Col>
-                            ))}
+<button
+  onClick={handleSourceChainDelivery}
+  style={{
+    padding: "10px 16px",
+    backgroundColor: "#4f46e5",
+    color: "white",
+    borderRadius: "6px",
+    marginTop: "12px"
+  }}
+>
+  Confirm Delivery (Source Chain)
+</button>
 
-                        {!loadingProducts &&
-                            products.map((product) => (
-                                <Col xs={24} sm={12} md={8} key={product.id}>
-                                    <Card
-                                        hoverable
-                                        style={{
-                                            borderRadius: 18,
-                                            height: "100%",
-                                            display: "flex",
-                                            flexDirection: "column",
-                                        }}
-                                        bodyStyle={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            flexGrow: 1,
-                                        }}
-                                    >                                    <div style={{ height: 180, background: "#f0f2f5", borderRadius: 12, marginBottom: 16 }} />
+                {/* <button onClick={handleRelease}>
+                    Confirm delivery & release funds
+                </button> */}
+            </div>
 
-                                        <Title level={4}>{product.title}</Title>
-                                        <Text type="secondary">{product.description || "No description"}</Text>
+            <button
+  onClick={handleSourceChainDelivery}
+  style={{
+    padding: "10px 16px",
+    backgroundColor: "#4f46e5",
+    color: "white",
+    borderRadius: "6px",
+    marginTop: "12px"
+  }}
+>
+  Confirm Delivery (Source Chain)
+</button>
 
-                                        <Title level={5} style={{ marginTop: 12 }}>
-                                            {product.price_usdt} USDT
-                                        </Title>
 
-                                        <Text type="secondary" style={{ display: "block", marginBottom: 12 }}>
-                                            {product.stock_available > 0
-                                                ? `${product.stock_available} left in stock`
-                                                : "Out of stock"}
-                                        </Text>
-
-                                        {role === "buyer" && (
-                                            <Button
-                                                type="primary"
-                                                block
-                                                disabled={product.stock_available === 0}
-                                                loading={buyingId === product.id}
-                                                onClick={() => handleBuy(product)}
-                                            >
-                                                Buy now
-                                            </Button>
-                                        )}
-                                    </Card>
-                                </Col>
-                            ))}
-                    </Row>
-                )}
-            </Content>
-
-            <FloatButton
-                icon={<Code size={16} />}
-                tooltip="Developer info"
-                onClick={() => setShowDevInfo(true)}
-            />
-            <Modal
-                title="Developer Info"
-                open={showDevInfo}
-                onCancel={() => setShowDevInfo(false)}
-                footer={null}
-                width={640}   // 👈 wider (nice on Mac)
-            >
-                <Descriptions bordered column={1}>
-                    <Descriptions.Item label="Wallet">
-                        <Text code>{address}</Text>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Chain ID">
-                        <Tag color={chainId === 9746 ? "green" : "red"}>{chainId}</Tag>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Marketplace">
-                        <Text code>{MARKETPLACE_ADDRESS}</Text>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="USDT">
-                        <Text code>{USDT_ADDRESS}</Text>
-                    </Descriptions.Item>
-                </Descriptions>
-            </Modal>
-        </Layout>
-    );
+            <button onClick={logout}>Logout</button>
+        </div>
+    )
 }
+
+
+
+
+// import { useEffect } from 'react'
+// import { useNavigate } from 'react-router-dom'
+// import { usePrivy, useWallets } from '@privy-io/react-auth'
+// import { useSetActiveWallet } from '@privy-io/wagmi'
+// import { useChainId } from 'wagmi'
+// import { payIntoEscrow } from "../lib/escrow/payIntoEscrow.js";
+// import { releaseEscrow } from "../lib/escrow/releaseEscrow.js";
+
+
+// const MOCK_ITEM = {
+//     id: 'item-001',
+//     name: 'Test Sneakers',
+//     price: '5', // pretend 5 USDC
+// }
+// export default function Dashboard() {
+//     const navigate = useNavigate()
+//     const { ready, authenticated, logout: privyLogout } = usePrivy()
+//     const { wallets } = useWallets()
+//     const { setActiveWallet } = useSetActiveWallet()
+//     const chainId = useChainId()
+
+//     const wallet = wallets[0]
+//     const address = wallet?.address
+//     const isConnected = !!address
+
+//     useEffect(() => {
+//         if (!ready || !authenticated || !wallet) return
+
+//         const setupWallet = async () => {
+//             try {
+//                 await wallet.switchChain(9746)
+//                 setActiveWallet(wallet)
+//                 console.log('Switched to Plasma chain')
+//             } catch (err) {
+//                 console.error(err)
+//             }
+//         }
+
+//         setupWallet()
+//     }, [ready, authenticated, wallet])
+
+//     const handleBuy = async () => {
+//         if (!wallet) return
+//         console.log(wallet)
+//         // Deposit 0.01 USDT (6 decimals) into escrow
+//         await payIntoEscrow(wallet, "0.01", 6);
+//     };
+
+//     const handleRelease = async () => {
+//         await releaseEscrow(wallet);
+//         alert("Delivery confiremd - Funds released 🎉");
+//     };
+
+//     const logout = async () => {
+//         await privyLogout()
+//         navigate('/login')
+//     }
+
+//     if (!ready || !authenticated) return <p>Loading wallet…</p>
+
+//     return (
+//         <div style={{ padding: 32 }}>
+//             <h1>Dashboard</h1>
+
+//             <p>Connected: {isConnected ? 'yes' : 'no'}</p>
+//             <p>Address: {address}</p>
+//             <p>Chain ID: {chainId}</p>
+
+
+//             <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8 }}>
+//                 <h2>Mock Item</h2>
+//                 <p><b>ID:</b> item-001</p>
+//                 <p><b>Name:</b> Test Sneakers</p>
+//                 <p><b>Price:</b> 5 USDC (test)</p>
+
+//                 <button onClick={handleBuy}>
+//                     Buy Item
+//                 </button>
+
+//                 <button onClick={handleRelease}>
+//                     Confirm delivery & release funds
+//                 </button>
+//             </div>
+//             <button onClick={logout}>Logout</button>
+//         </div>
+//     )
+// }
