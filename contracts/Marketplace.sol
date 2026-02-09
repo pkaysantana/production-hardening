@@ -2,13 +2,15 @@
 pragma solidity ^0.8.20;
 
 import "./PaymentEscrow.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
-contract Marketplace {
+contract Marketplace is Ownable, Pausable {
     // orderId = hash of your Supabase UUID
     mapping(bytes32 => address) public escrowOfOrder;
 
-    // 🔒 Stationary delivery oracle (set once)
-    address public immutable deliveryOracle;
+    // 🔒 Stationary delivery oracle (updatable)
+    address public deliveryOracle;
 
     event EscrowCreated(
         bytes32 indexed orderId,
@@ -20,9 +22,25 @@ contract Marketplace {
         address deliveryOracle
     );
 
-    constructor(address _deliveryOracle) {
+    event OracleUpdated(address indexed oldOracle, address indexed newOracle);
+
+    constructor(address _deliveryOracle) Ownable(msg.sender) {
         require(_deliveryOracle != address(0), "Invalid oracle");
         deliveryOracle = _deliveryOracle;
+    }
+
+    function setDeliveryOracle(address _newOracle) external onlyOwner {
+        require(_newOracle != address(0), "Invalid oracle");
+        emit OracleUpdated(deliveryOracle, _newOracle);
+        deliveryOracle = _newOracle;
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
     function createEscrowForOrder(
@@ -30,7 +48,7 @@ contract Marketplace {
         address seller,
         address usdtAddress,
         uint256 deadlineDuration
-    ) external returns (address escrow) {
+    ) external whenNotPaused returns (address escrow) {
         require(escrowOfOrder[orderId] == address(0), "Escrow already exists");
         require(seller != address(0), "Invalid seller");
         require(usdtAddress != address(0), "Invalid token");

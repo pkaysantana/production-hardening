@@ -4,11 +4,13 @@
 
 # Magma Marketplace: Verified B2B Commerce
 
-![Status](https://img.shields.io/badge/Status-Hackathon_MVP-fire) ![Settlement](https://img.shields.io/badge/Settlement-Plasma-blue) ![Truth](https://img.shields.io/badge/Truth-Flare-red) ![Bridge](https://img.shields.io/badge/Bridge-TypeScript-yellow) ![Interface](https://img.shields.io/badge/Interface-React-cyan)
+![Status](https://img.shields.io/badge/Status-Production_Hardening-green) ![Settlement](https://img.shields.io/badge/Settlement-Plasma-blue) ![Truth](https://img.shields.io/badge/Truth-Flare-red) ![Bridge](https://img.shields.io/badge/Bridge-TypeScript-yellow) ![Interface](https://img.shields.io/badge/Interface-React-cyan)
 
 > **"Liquid Capital. Solid Truth."**
 >
 > Magma is a Trustless Commerce Primitive that burns the middleman by bridging **Plasma's** zero-gas settlement with **Flare's** decentralised data verification.
+>
+> **Note:** This fork (`production-hardening`) is focused on transitioning the Ethereum Oxford 2026 MVP into a production-grade protocol. See [ROADMAP.md](docs/ROADMAP.md) for details.
 
 ---
 

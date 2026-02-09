@@ -42,6 +42,7 @@ describe("PlasmaPayment FDC Integration", function () {
             trackingId,
             amount,
             fxRate,
+            3600, // Delivery Window
             { value: amount }
         );
 
@@ -56,15 +57,29 @@ describe("PlasmaPayment FDC Integration", function () {
         // 5. Prepare Proof (Mock)
         const proof = [ethers.keccak256(ethers.toUtf8Bytes("PROOF_NODE"))];
 
+        // Canonical Data
+        const attestationType = ethers.hexlify(ethers.randomBytes(32));
+        const sourceId = ethers.hexlify(ethers.randomBytes(32));
+
+        // Calculate Leaf (Matches PlasmaPayment logic)
+        // requestBody = keccak256(abi.encode(trackingId, "Delivered"))
+        // leaf = keccak256(abi.encode(attestationType, sourceId, requestBody))
+        const requestBody = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["string", "string"], [trackingId, "Delivered"]));
+        const leaf = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["bytes32", "bytes32", "bytes32"], [attestationType, sourceId, requestBody]));
+
+        // Register valid proof
+        await mockFDC.setProofValidity(merkleRoot, leaf, true);
+
         // 6. Release Funds
-        // Mock FDC is set to return true by default
         await expect(plasmaPayment.releaseFunds(
             // orderId calculation: keccak256(buyer, seller, timestamp)
             // Since we can't easily predict exact timestamp, we might need to fetch the orderId from events or storage
             // For this test we can assume we grab it from the event or just re-calculate it locally if we control timestamp
             // Let's get it from the event:
             (await plasmaPayment.queryFilter("OrderCreated"))[0].args[0],
-            proof
+            proof,
+            attestationType,
+            sourceId
         )).to.changeEtherBalances(
             [plasmaPayment, seller],
             [-amount, amount]

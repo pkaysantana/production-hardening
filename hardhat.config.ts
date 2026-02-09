@@ -12,10 +12,18 @@ module.exports = {
             }
         }
     },
+    paths: {
+        tests: "./tests",
+    },
     networks: {
         coston2: {
             url: process.env.COSTON2_RPC_URL || "https://coston2-api.flare.network/ext/C/rpc",
             chainId: 114,
+            accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+        },
+        flare: {
+            url: process.env.FLARE_RPC_URL || "https://flare-api.flare.network/ext/C/rpc",
+            chainId: 14,
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
         },
         plasmaTestnet: {
