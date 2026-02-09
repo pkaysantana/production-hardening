@@ -144,7 +144,8 @@ contract PlasmaPaymentERC20 is Ownable, ReentrancyGuard {
         address _seller,
         string memory _trackingId, 
         uint256 _amount,
-        uint256 _fxRate
+        uint256 _fxRate,
+        uint256 _deliveryWindow
     ) external {
         require(isKybed[_seller], "Seller not KYB verified");
         // Funds are transferred FROM the buyer TO this contract contract (Escrow)
@@ -159,7 +160,7 @@ contract PlasmaPaymentERC20 is Ownable, ReentrancyGuard {
             seller: _seller,
             amount: _amount,
             fxRate: _fxRate,
-            deliveryDeadline: block.timestamp + 3600, // Default 1 hour for ERC20 version for now
+            deliveryDeadline: block.timestamp + _deliveryWindow,
             trackingId: _trackingId,
             status: OrderTypes.OrderStatus.Escrowed
         });

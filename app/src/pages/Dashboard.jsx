@@ -1,33 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePrivy, useWallets } from '@privy-io/react-auth'
 import { useSetActiveWallet } from '@privy-io/wagmi'
 import { useChainId } from 'wagmi'
-import { payIntoEscrow } from "../lib/escrow/payIntoEscrow.js";
-
-import { useState } from "react";
 import { ethers } from "ethers";
-
-import { MARKETPLACE_ADDRESS } from "../lib/blockchain/marketplaceConfig";
-import { marketplaceAbi } from "../lib/blockchain/marketplaceAbi";
-import { USDT_ADDRESS } from "../lib/escrow/escrowConfig";
-
-import { submitSimulatedDelivery } from "../lib/blockchain/sourceChain.ts";
-
-const SIMULATED_ORDER_ID =
-  "0x4f6a1c2e9d7b3a5c8e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1";
-
+import { getContracts } from '../lib/contracts'
 
 const MOCK_ITEM = {
     id: 'item-0101',
     name: 'Test Sneakers',
     price: '0.001',
-    seller: '0x48F4068b8c704bec2cb51d3a4e8585c8c5Fb68D5'
+    seller: '0x48F4068b8c704bec2cb51d3a4e8585c8c5Fb68D5' // Hardcoded seller
 }
 
 export default function Dashboard() {
-    const [escrowAddress, setEscrowAddress] = useState(null);
-
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
     const { ready, authenticated, logout: privyLogout } = usePrivy()
     const { wallets } = useWallets()
@@ -40,91 +27,58 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (!ready || !authenticated || !wallet) return
-
         const setupWallet = async () => {
             try {
-                await wallet.switchChain(9746)
+                await wallet.switchChain(114) // Coston2
                 setActiveWallet(wallet)
-                console.log('Switched to Plasma chain')
             } catch (err) {
                 console.error(err)
             }
         }
-
         setupWallet()
     }, [ready, authenticated, wallet])
-const handleSourceChainDelivery = async () => {
-  try {
-    console.log("Submitting delivery to source chain...");
-    await submitSimulatedDelivery(SIMULATED_ORDER_ID);
-    console.log("Delivery transaction sent");
-  } catch (err) {
-    console.error("Source-chain delivery failed:", err);
-  }
-};
 
     const handleBuy = async () => {
         if (!wallet) return;
+        setLoading(true)
 
-        // 1. Provider + signer
-        const ethProvider = await wallet.getEthereumProvider();
-        const provider = new ethers.BrowserProvider(ethProvider);
-        const signer = await provider.getSigner();
+        try {
+            const ethProvider = await wallet.getEthereumProvider();
+            const provider = new ethers.BrowserProvider(ethProvider);
+            const signer = await provider.getSigner();
+            const { usdtContract, plasmaPaymentContract } = getContracts(signer)
+            const plasmaAddress = await plasmaPaymentContract.getAddress()
 
-        // 2. Marketplace contract
-        const marketplace = new ethers.Contract(
-            MARKETPLACE_ADDRESS,
-            marketplaceAbi,
-            signer
-        );
+            // 1. Approve
+            const amount = ethers.parseUnits(MOCK_ITEM.price, 18)
+            console.log("Approving...")
+            const txApprove = await usdtContract.approve(plasmaAddress, amount)
+            await txApprove.wait()
+            console.log("Approved.")
 
-        // 3. Fake order id for now (no Supabase)
-        const orderId = MOCK_ITEM.id;
-        const orderIdBytes32 = ethers.keccak256(
-            ethers.toUtf8Bytes(orderId)
-        );
+            // 2. Create Order
+            const trackingId = `SHIP-${Date.now()}`
+            const deliveryWindow = 3600 // 1 hour
+            // Use 100 as FX rate for 1:1 parity mock
+            console.log("Creating Order...")
+            const txCreate = await plasmaPaymentContract.createOrder(
+                MOCK_ITEM.seller,
+                trackingId,
+                amount,
+                100,
+                deliveryWindow
+            )
+            await txCreate.wait()
 
-        // 4. Create escrow
-        const tx = await marketplace.createEscrowForOrder(
-            orderIdBytes32,
-            "0x48F4068b8c704bec2cb51d3a4e8585c8c5Fb68D5",          // seller(Fake address for now)
-            86400             // 1 day
-        );
-
-        const receipt = await tx.wait();
-        // 5. Extract escrow address from event (ONLY from Marketplace logs)
-        const event = receipt.logs
-            .filter(log => log.address.toLowerCase() === marketplace.target.toLowerCase())
-            .map(log => {
-                try {
-                    return marketplace.interface.parseLog(log);
-                } catch {
-                    return null;
-                }
-            })
-            .find(e => e?.name === "EscrowCreated");
-
-        if (!event) throw new Error("EscrowCreated event not found");
-
-        const escrow = event.args.escrow;
-        console.log("Escrow created:", escrow);
-
-        setEscrowAddress(escrow);
-
-        await payIntoEscrow(
-            wallet,
-            escrow,          // PaymentEscrow address
-            MOCK_ITEM.price, // amount
-            6                // decimals
-        );
-
-        alert("✅ Escrow created & funded");
+            alert(`✅ Order Created! Tracking ID: ${trackingId}`)
+            navigate('/orders')
+        } catch (err) {
+            console.error(err)
+            alert("Transaction failed: " + (err.reason || err.message))
+        } finally {
+            setLoading(false)
+        }
     };
-
-    // const handleRelease = async () => {
-    //     await releaseEscrow(wallet);
-    //     alert("Delivery confiremd - Funds released 🎉");
-    // };
 
     const logout = async () => {
         await privyLogout()
@@ -141,52 +95,18 @@ const handleSourceChainDelivery = async () => {
             <p>Address: {address}</p>
             <p>Chain ID: {chainId}</p>
 
-
             <div style={{ marginTop: 24, padding: 16, border: '1px solid #ccc', borderRadius: 8 }}>
                 <h2>Mock Item</h2>
-                <p><b>ID:</b> item-001</p>
-                <p><b>Name:</b> Test Sneakers</p>
-                <p><b>Price:</b> 5 USDC (test)</p>
+                <p><b>ID:</b> {MOCK_ITEM.id}</p>
+                <p><b>Name:</b> {MOCK_ITEM.name}</p>
+                <p><b>Price:</b> {MOCK_ITEM.price} USDT (Test)</p>
 
-                <button onClick={handleBuy}>
-                    Buy Item
+                <button onClick={handleBuy} disabled={loading} style={{ background: '#4caf50', color: 'white' }}>
+                    {loading ? 'Processing...' : 'Buy Item (Create Escrow)'}
                 </button>
-                {escrowAddress && (
-                    <p><b>Escrow:</b> {escrowAddress}</p>
-                )}
-<button
-  onClick={handleSourceChainDelivery}
-  style={{
-    padding: "10px 16px",
-    backgroundColor: "#4f46e5",
-    color: "white",
-    borderRadius: "6px",
-    marginTop: "12px"
-  }}
->
-  Confirm Delivery (Source Chain)
-</button>
-
-                {/* <button onClick={handleRelease}>
-                    Confirm delivery & release funds
-                </button> */}
             </div>
 
-            <button
-  onClick={handleSourceChainDelivery}
-  style={{
-    padding: "10px 16px",
-    backgroundColor: "#4f46e5",
-    color: "white",
-    borderRadius: "6px",
-    marginTop: "12px"
-  }}
->
-  Confirm Delivery (Source Chain)
-</button>
-
-
-            <button onClick={logout}>Logout</button>
+            <button onClick={logout} style={{ marginTop: 20 }}>Logout</button>
         </div>
     )
 }
